@@ -1,2 +1,4 @@
-# RPG-Maker-MZ-plugins
-Plugins pour le logiciel RPG Maker MZ
+# Plugins RPG Maker MZ
+
+Liste des plugins : 
+- RotomecaQuestSystem 
