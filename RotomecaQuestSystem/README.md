@@ -1,11 +1,11 @@
 # RotomecaQuestSystem
 
-=============================================================================
 === Rotomeca Quest System ===
-Author   -   Rotomeca
+
+Author   -   Rotomeca /
 Version  -   0.9.0
-Updated  -   28/03/2022
-=============================================================================
+
+------------------------------
 
 Ajoute un système de quête au jeu.
 
