@@ -1,7 +1,7 @@
 # RotomecaQuestSystem
 
 =============================================================================
-### Rotomeca Quest System ###
+=== Rotomeca Quest System ===
 Author   -   Rotomeca
 Version  -   0.9.0
 Updated  -   28/03/2022
