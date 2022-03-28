@@ -22,13 +22,13 @@ var Rotomeca = Rotomeca || {};
 // *** Rotomeca ***
 //=============================================================================
 Rotomeca.gettext = function gettext(text, plugin = null) {
-	const params = plugin ? Rotomeca.parameters : Rotomeca[plugin].parameters;
+	const params = !plugin ? Rotomeca.parameters : Rotomeca[plugin].parameters;
 
 	return params[`LANG:${text}`] ?? text;
 };
 
 Rotomeca.lang_param = function lang_param(text, param, _default, plugin = null) {
-	const params = plugin ? Rotomeca.parameters : Rotomeca[plugin].parameters;
+	const params = !plugin ? Rotomeca.parameters : Rotomeca[plugin].parameters;
 
 	return params[`${text}:${param}`] ?? _default;
 };
