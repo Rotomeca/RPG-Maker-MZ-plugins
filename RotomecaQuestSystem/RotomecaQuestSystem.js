@@ -1,33 +1,378 @@
 //=============================================================================
 // RotomecaQuestSystem.js
 //=============================================================================
-
 /*:
  * @target MZ
- * @plugindesc (V0.4.0) Ajoute un système de quête
+ * @plugindesc (V0.9.0) Add a quest system
  * @author Rotomeca
- *
+ * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
+ * @orderAfter RotomecaHelpers
+ * 
+ * 
  * @param Quests
+ * @text Quests
  * @desc Quests database
  * @default
  * @type struct<Quest>[]
  * 
  * @param Starting quests
- * @desc Les quêtes déjà dans le menu de quête au lancement de la partie.
+ * @text Starting quest
+ * @desc Quest already in the quest book at the start of the game
  * @type number[]
  * 
  * @param Default Quest Enabled
- * @desc Le menu de quête est activé par défaut.
+ * @text Menu Quest Enabled
+ * @desc Quest menu enabled by default ?
  * @default true
  * @type boolean
  * 
  * @param Auto update
+ * @text Auto update ?
+ * @desc Quests updating after get game datas ?
+ * @default true
+ * @type boolean
+ * 
+ * @param Update When Menu
+ * @text Update When Menu
+ * @desc Quests update when entering in the quest menu ?
+ * @default true
+ * @type boolean
+ * 
+ * @param ShowQuestNotif
+ * @text Show quest notif ?
+ * @desc Show notification when a quest is done, failed or acquired ?
+ * @default true
+ * @type boolean
+ * 
+ * @param ShowStepUpdated
+ * @text Show step notif ?
+ * @desc Show a notification when a step is updated ?
+ * @default true
+ * @type boolean
+ * 
+ * @param --------LANG-------
+ * @desc 
+ * @default
+ * @type string
+ * 
+ * @param LANG:QUEST
+ * @desc Text showed in the main menu 
+ * @default Quests
+ * @type string
+ * 
+ * @param LANG:LOCATION
+ * @desc Text showed for quest location
+ * @default Go to
+ * @type string
+ * 
+ * @param LANG:PERSON
+ * @desc Text showed for draw the client name
+ * @default Talking to
+ * @type string
+ * 
+ * @param LANG:KILL_MONSTER
+ * @desc Text showed who show the number of monster killed
+ * @default killed on
+ * @type string
+ * 
+ * @param LANG:STEP
+ * @desc Text showed befores all steps
+ * @default Step
+ * @type string
+ * 
+ * @param STEP:INCLUDE:S
+ * @desc Plural for LANG:STEP ?
+ * @default true
+ * @type boolean
+ * 
+ * @param LANG:REWARD
+ * @desc Text showed befores all rewards
+ * @default Reward
+ * @type string
+ * 
+ * @param REWARD:INCLUDE:S
+ * @desc Plural for LANG:REWARD
+ * @default true
+ * @type boolean
+ * 
+ * @command DisableQuestMenu
+ * @desc Disable the quest menu in the main menu
+ * @text Disable Quest Menu
+ * 
+ * @command EnableQuestMenu
+ * @desc Enable the quest menu in the main menu
+ * @text Enable Quest Menu
+ * 
+ * @command Update
+ * @desc Update all quests advancement
+ * @text Update
+ *  
+ * @arg async
+ * @text Async
+ * @desc Not wait the update is finished before continue
+ * @type boolean
+ * @default false
+ * 
+ * @command Add
+ * @desc Add a quest in the questbook
+ * @text Add
+ *  
+ * @arg id
+ * @text Id
+ * @desc Id of quest to add.
+ * @type number
+ * @default 1
+ * 
+ * @command Validate
+ * @desc Validate a quest in the quest book
+ * @text Validate
+ *  
+ * @arg id
+ * @text Id
+ * @desc Id of quest to validate.
+ * @type number
+ * @default 1
+ * 
+ * @command ValidateStep
+ * @desc Validate a step of a quest in the questbook
+ * @text Validate Step
+ *  
+ * @arg id
+ * @text Id
+ * @desc Id of the quest.
+ * @type number
+ * @default 1
+ * 
+ * @arg stepId
+ * @text Id
+ * @desc Id of the step to validate.
+ * @type number
+ * @default 1
+ * 
+ * 
+ * @command FailStep
+ * @desc Fail a step of a quest in the questbook
+ * @text Fail Step
+ *  
+ * @arg id
+ * @text Id
+ * @desc Id of the quest.
+ * @type number
+ * @default 1
+ * 
+ * @arg stepId
+ * @text Id
+ * @desc Id of the quest.
+ * @type number
+ * @default 1
+ *  
+ * @command Fail
+ * @desc Fail a quest in the questbook
+ * @text Fail
+ * 
+ * @arg id
+ * @text Id
+ * @desc Id of the quest to fail.
+ * @type number
+ * @default 1
+ * 
+ * @command Create
+ * @desc Create a quest in the quest database
+ * @text Create
+ *  
+ * @arg Quest
+ * @text Quest
+ * @desc Quest added in the database
+ * @type struct<Quest>
+ * 
+ * @command CreateQuests
+ * @desc Create quests in the quest database
+ * @text CreateQuests
+ *  
+ * @arg Quests
+ * @text Quests
+ * @desc Quests added in the database
+ * @type struct<Quest>[]
+ * 
+ * @help  
+ * =============================================================================
+ * ### Rotomeca Quest System ###
+ * Author   -   Rotomeca
+ * Version  -   0.9.0
+ * Updated  -   28/03/2022
+ * =============================================================================
+ * 
+ */
+
+/*~struct~QuestReward:
+ * @param type
+ * @text Reward type
+ * @type select 
+ * @default Variable
+ * @option Game variable
+ * @value Variable
+ * @option Game Switch
+ * @value Switch
+ * @option Gold
+ * @value Gold
+ * @option Item
+ * @value Item
+ * @option Armor
+ * @value Armor
+ * @option Weapon
+ * @value Weapon
+ * @option Quest
+ * @value Quest
+ * @option Custom
+ * @value Custom
+ *
+ * @param amount
+ * @text Amount
+ * @type number
+ * 
+ * @param id
+ * @text Id of the reward
+ * @type number
+ * @desc by type
+ * 
+ * 
+ */
+
+/*~struct~QuestStep:
+ * @param type
+ * @text Step type
+ * @desc Step to do for validate the quest
+ * @type select 
+ * @default Variable
+ * @option Game variable
+ * @value Variable
+ * @option Game Switch
+ * @value Switch
+ * @option Location
+ * @value Location
+ * @option Talking to
+ * @value Talking
+ * @option Kill x ennemy(ies)
+ * @value Ennemy
+ * @option Get item(s)
+ * @value Items
+ * @option Get weapon(s)
+ * @value Weapons
+ * @option Get armor(s)
+ * @value Armors
+ * @option Custom
+ * @value Custom
+ * 
+ * @param Game Data Id
+ * @text Game data id
+ * @desc Id in the RPG MAKER MZ database
+ * @type number
+ * 
+ * @param Step desc
+ * @text Step desc
+ * @desc Location/Person name/Desc
+ * @type text
+ * 
+ * @param Amount
+ * @text Amout
+ * @desc Amount (Except for game switch/Location/Talking to) 
+ * @type number
+ * 
+ * @param Is Hidden
+ * @text Is Hidden ?
+ * @desc Step hidden ? (Put true if in 'Next Step(s)')
+ * @default false
+ * @type boolean
+ * 
+ * @param Next Step(s)
+ * @text Next Step(s)
+ * @desc Next step(s) showed when validate
+ * @type number[]
+ * 
+ */
+
+/*~struct~Quest:
+ * 
+ * @param Quest Name
+ * @text Quest Name
+ * @desc Name showed in the menu
+ * @type text
+ * 
+ * @param Quest desc
+ * @text Quest desc
+ * @desc Quest desc
+ * @type multiline_string
+ * 
+ * @param Main quest
+ * @text Main Quest ?
+ * @default true
+ * @type boolean
+ * 
+ * @param Giver
+ * @text Giver
+ * @desc Person who give the quest
+ * @type text
+ * 
+ * @param Location
+ * @text Location
+ * @desc Quest location
+ * @type text
+ * 
+ * @param Steps
+ * @text Steps
+ * @type struct<QuestStep>[]
+ * 
+ * @param Rewards
+ * @text Rewards
+ * @desc Rewards get when the quest is validate
+ * 
+ */
+
+
+/*:fr
+ * @target MZ
+ * @plugindesc (V0.9.0) Ajoute un système de quête
+ * @author Rotomeca
+ * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
+ *
+ * @param Quests
+ * @text Quêtes
+ * @desc Base de données des quêtes
+ * @default
+ * @type struct<Quest>[]
+ * 
+ * @param Starting quests
+ * @text Quêtes de départ
+ * @desc Les quêtes déjà dans le menu de quête au lancement de la partie.
+ * @type number[]
+ * 
+ * @param Default Quest Enabled
+ * @text Activer le menu de quête
+ * @desc Le menu de quête est activé par défaut ?
+ * @default true
+ * @type boolean
+ * 
+ * @param Auto update
+ * @text MAJ des quêtes automatique ?
  * @desc Les quêtes sont mises à jours à chaque "évènements" 
  * @default true
  * @type boolean
  * 
  * @param Update When Menu
- * @desc Les quêtes sont mises à jours à l'entrée du menu des quêtes
+ * @text MAJ des quêtes dans le menu ?
+ * @desc Les quêtes sont mises à jours à l'entrée du menu des quêtes ?
+ * @default true
+ * @type boolean
+ * 
+ * @param ShowQuestNotif
+ * @text Afficher les notifications des quêtes ?
+ * @desc Affiche une notification lorsqu'une quête est finie, échouée ou obtenu ?
+ * @default true
+ * @type boolean
+ * 
+ * @param ShowStepUpdated
+ * @text Afficher les notifications des étapes ?
+ * @desc Affiche une notification lorsqu'une étape est mise à jours ?
  * @default true
  * @type boolean
  * 
@@ -76,9 +421,17 @@
  * @default true
  * @type boolean
  * 
+ * @command DisableQuestMenu
+ * @desc Désactive le menu de quête dans le menu
+ * @text Désactiver le menu de quête
+ * 
+ * @command EnableQuestMenu
+ * @desc Active le menu de quête dans le menu
+ * @text Activer le menu de quête
+ * 
  * @command Update
  * @desc Met à jours l'avancement des quêtes
- * @text Update
+ * @text MAJ
  *  
  * @arg async
  * @text Asynchrone
@@ -88,7 +441,7 @@
  * 
  * @command Add
  * @desc Ajoute une quête au livre de quête
- * @text Add
+ * @text Ajouter
  *  
  * @arg id
  * @text Id
@@ -98,7 +451,7 @@
  * 
  * @command Validate
  * @desc Valide une quête du livre de quête
- * @text Validate
+ * @text Valider
  *  
  * @arg id
  * @text Id
@@ -106,154 +459,261 @@
  * @type number
  * @default 1
  * 
+ * @command ValidateStep
+ * @desc Valide une étape d'une quête du livre de quête
+ * @text Valider une étape
+ *  
+ * @arg id
+ * @text Id
+ * @desc Id de la quête.
+ * @type number
+ * @default 1
+ * 
+ * @arg stepId
+ * @text Id
+ * @desc Id de l'étape à valider.
+ * @type number
+ * @default 1
+ * 
+ * @command FailStep
+ * @desc Echoue une étape d'une quête du livre de quête
+ * @text Echouer une étape
+ *  
+ * @arg id
+ * @text Id
+ * @desc Id de la quête.
+ * @type number
+ * @default 1
+ * 
+ * @arg stepId
+ * @text Id de l'étape
+ * @desc Id de l'étape à echouer.
+ * @type number
+ * @default 1
+ * 
  * @command Fail
  * @desc Echoue une quête du livre de quête
- * @text Fail
- *  
+ * @text Echouer 
+ * 
  * @arg id
  * @text Id
- * @desc Id de la quête à échouer.
+ * @desc Id de la quête à echouer.
  * @type number
  * @default 1
  * 
- * @command Exist
- * @desc Vérifie si un id de quête existe dans la base de données
- * @text Exist
+ * @command Create
+ * @desc Créé une quête
+ * @text Créer
  *  
- * @arg id
- * @text Id
- * @desc Id de la quête.
- * @type number
- * @default 1
+ * @arg Quest
+ * @text Quête
+ * @desc Quête qui sera ajouter à la base de données des quêtes.
+ * @type struct<Quest>
  * 
- * @command Have
- * @desc Vérifie si l'équipe possède une quête
- * @text Have
+ * @command CreateQuests
+ * @desc Créé plusieurs quêtes
+ * @text Créer plusieurs quêtes
  *  
- * @arg id
- * @text Id
- * @desc Id de la quête.
- * @type number
- * @default 1
+ * @arg Quests
+ * @text Quêtes
+ * @desc Quêtes qui sera ajouter à la base de données des quêtes.
+ * @type struct<Quest>[]
+ * 
+ * @orderAfter RotomecaHelpers
  * 
  * @help  
  * =============================================================================
  * ### Rotomeca Quest System ###
  * Author   -   Rotomeca
- * Version  -   0.4.0
- * Updated  -   25/03/2022
+ * Version  -   0.9.0
+ * Updated  -   28/03/2022
  * =============================================================================
+ * 
+ * Ajoute un système de quête au jeu.
+ * 
+ * Utilisez le paramètre 'Quêtes' pour ajouter des quêtes à votre jeu.
+ * L'id de la quête correspond au nombre en face de la quête.
+ * 
+ * Commandes : 
+ * - Désactiver le menu de quête
+ *  => Désactive le menu de quête dans le menu
+ * 
+ * - Activer le menu de quête
+ *  => Active le menu de quête dans le menu
+ * 
+ * - MAJ
+ *  => Met à jours l'avancement de toute les quêtes obtenu
+ *    => Le paramètres 'Asynchrone' permet d'activer ou non la fin de la commande avant de faire d'autre chose
+ * 
+ * - Valider/Echouer
+ *  => Valide ou échoue une quête
+ *    => Le paramètre 'id' correspond à l'id de la quête
+ * 
+ * - Valider une étape/Echouer une étape
+ *  => Valide ou échoue une étape/un objectif d'une quête
+ *    => Le paramètre 'id' correspond à l'id de la quête qui possède l'étape
+ *    => Le paramètre 'Id de l'étape' correspond à l'id de l'étape (le nombre devant la liste des étapes d'une quête)
+ * 
+ * - Ajouter
+ *  => Ajoute une quête au livre de quête
+ *    => Le paramètre 'Id' correspond à l'id de la quête dans la base de données
+ * 
+ * Commandes conditionnels : 
+ * Lorsque vous faites une branche conditionnel, choisssez 'script' et écrivez : 
+ * - $questExist(id) 
+ *  => Vérifie si une quête éxiste dans la base de données
+ *    => id : Id de la quête dans la base de données
+ *    => Renvoie vrai (true) si elle existe, faux (false) sinon
+ * 
+ * - $questHave(id)
+ *  => Vérifie si une quête est dans le livre de quête
+ *    => id : Id de la quête dans la base de données
+ *    => Renvoie vrai (true) si elle y est, faux (false) sinon
+ * - $questValidate(id)/$questFailed(id)/$questInProgress(id)
+ *  =>Vérifie si une quête dans le livre de quête est validée, échouée ou en cours
+ *    => id : Id de la quête dans la base de données
+ *    => Renvoie vrai (true) si elle est validée, échouée ou en cours, faux (false) sinon
+ * 
+ * - $questIsAdded()
+ *  => A utiliser après la commande Ajouter
+ *    => Renvoie vrai (true) si la quête n'est pas dans le livre de quête, faux (false) sinon.
+ * 
+ * -----------------------------------------------------------------------------------------------------------
+ * Ce qu'il reste à faire : 
+ *  - Notifications
+ *  - Traduction du @help anglais
  * 
  */
 
-/*~struct~QuestReward:
+/*~struct~QuestReward:fr
  * @param type
+ * @text Type de récompense
+ * @desc Type de récompense qui sera obtenu après validation de la quête
  * @type select 
  * @default Variable
- * @option Game Variable
+ * @option Variable de jeu
  * @value Variable
- * @option Game Switch
+ * @option Interrupteur de jeu
  * @value Switch
- * @option Gold
+ * @option Or (le thune quoi $$)
  * @value Gold
- * @option Item
+ * @option Objet
  * @value Item
- * @option Armor
+ * @option Armure
  * @value Armor
- * @option Weapon
+ * @option Arme
  * @value Weapon
- * @option Quest
+ * @option Quête
  * @value Quest
- * @option Custom
+ * @option Créer par l'utilisateur (script)
  * @value Custom
  *
  * @param amount
+ * @text Montant
  * @type number
+ * @desc Nombre de récompense(s) que l'équipe obtient
  * 
  * @param id
+ * @text Id de la récompense
  * @type number
+ * @desc En fonction du type
  * 
  * 
  */
 
-/*~struct~QuestStep:
+/*~struct~QuestStep:fr
  * @param type
+ * @text Type d'étape
+ * @desc Objectif à faire pour valider la quête
  * @type select 
  * @default Variable
- * @option Game Variable
+ * @option Variable de jeu
  * @value Variable
- * @option Game Switch
+ * @option Intérrupteur de jeu
  * @value Switch
- * @option Location
+ * @option Localisation
  * @value Location
- * @option Talking to
+ * @option Parler à
  * @value Talking
- * @option Kill x ennemy(ies)
+ * @option Tuer des monstres
  * @value Ennemy
- * @option Get item(s)
+ * @option Obtenir un(des) objet(s)
  * @value Items
- * @option Get weapon(s)
+ * @option Obtenir une(des) arme(s)
  * @value Weapons
- * @option Get armor(s)
+ * @option Obtenir une(des) armure(s)
  * @value Armors
- * @option Custom
+ * @option Créer par l'utilisateur (script)
  * @value Custom
  * 
  * @param Game Data Id
- * @desc Id for type for update
+ * @text Id de la données de jeu
+ * @desc Id dans la base de données
  * @type number
  * 
  * @param Step desc
- * @desc Location/Person name/Desc 
+ * @text Description de l'étape
+ * @desc Nom de la localisation/Nom de la personne à aller parler/Description de l'étape 
  * @type text
  * 
  * @param Amount
- * @desc Amout of thiings what you need to do 
+ * @text Montant
+ * @desc Valeur à atteindre (sauf pour Intérrupteur de jeu/Localisation/Parler à) 
  * @type number
  * 
  * @param Is Hidden
- * @desc Is hidden field ? 
- * @default true
+ * @text Etape cachée
+ * @desc L'étape est cachée ? (Mettre vrai si elle se trouve dans le tableau 'Prochaine(s) étape(s)')
+ * @default false
  * @type boolean
  * 
  * @param Next Step(s)
- * @desc Next steps after validate this step
+ * @text Prochaine(s) étape(s)
+ * @desc Prochaines étapes qui seront affichés après que cette étape sera validée.
  * @type number[]
  * 
  */
 
-/*~struct~Quest:
+/*~struct~Quest:fr
  * 
  * @param Quest Name
- * @desc Name of the quest
+ * @text Nom de la quête
+ * @desc Nom qui sera affiché
  * @type text
  * 
  * @param Quest desc
- * @desc Desc of the quest
+ * @text Description de la quête
+ * @desc Description de la quête. (Pensez à vérifier le retour à la ligne en jeu.)
  * @type multiline_string
  * 
  * @param Main quest
- * @desc Is main quest
+ * @text Est une quête principale ?
+ * @desc Si vrai, elle sera affiché dans le menu des quêtes principales, sinon, des secondaires.
  * @default true
  * @type boolean
  * 
  * @param Giver
- * @desc Persona that give you the quest
+ * @text Client
+ * @desc Personne qui donne la quête
  * @type text
  * 
  * @param Location
- * @desc Where we get the quest
+ * @text Localisation
+ * @desc Où on a reçut la quête/où il faut aller
  * @type text
  * 
  * @param Steps
- * @desc The steps of this quest
+ * @text Etapes
+ * @desc Les étapes/objectifs de la quête
  * @type struct<QuestStep>[]
  * 
  * @param Rewards
- * @desc Rewars of the quest
- * @type struct<QuestReward>[]
+ * @text Récompenses
+ * @desc Récompenses de la quête
  * 
  */
+
+
 
 //=============================================================================
 // ** PLUGIN PARAMETERS
@@ -334,32 +794,97 @@ PluginManager.registerCommand(plugin_name, "Update", data => {
 });	
 
 PluginManager.registerCommand(plugin_name, "Add", data => {
-    return QuestDatabase.tryAddQuestToParty(data.id);
+    $questIsAdded.val = QuestDatabase.tryAddQuestToParty(data.id);
 });	
 
 PluginManager.registerCommand(plugin_name, "Validate", data => {
-    return $gameQuests.validateQuest(data.id);
+    return $gameParty._quests.validateQuest(data.id);//$gameQuests.validateQuest(data.id);
+});	
+
+PluginManager.registerCommand(plugin_name, "ValidateStep", data => {
+    return $gameParty._quests.validateQuestStep(data.id, data.stepId);//$gameQuests.validateQuest(data.id);
 });	
 
 PluginManager.registerCommand(plugin_name, "Fail", data => {
-    return $gameQuests.failQuest(data.id);
+    return $gameParty._quests.failQuest(data.id);
 });	
 
-PluginManager.registerCommand(plugin_name, "Exist", data => {
-    return $gameQuests.quests[data.id] == true;
+PluginManager.registerCommand(plugin_name, "FailStep", data => {
+    return $gameParty._quests.failQuestStep(data.id, data.stepId);//$gameQuests.validateQuest(data.id);
 });	
 
-PluginManager.registerCommand(plugin_name, "Have", data => {
-    return $gameParty._quests.have(data.id);
-});	
-
-PluginManager.registerCommand(plugin_name, "CreateQuest", data => {
-    //TODO
+PluginManager.registerCommand(plugin_name, "Create", data => {
+    $gameQuests.addCreated(JSON.stringify([data.Quest]));
 });	
 
 PluginManager.registerCommand(plugin_name, "CreateQuests", data => {
-    //TODO  
+    $gameQuests.addCreated(data.Quests); 
 });	
+
+PluginManager.registerCommand(plugin_name, "DisableQuestMenu", data => {
+    Rotomeca.RotomecaQuestSystem.isQuestEnabled = false;
+});	
+
+PluginManager.registerCommand(plugin_name, "EnableQuestMenu", data => {
+    Rotomeca.RotomecaQuestSystem.isQuestEnabled = true;
+});	
+
+//=============================================================================
+// **  ScrptingHelper **
+//=============================================================================	
+/**
+ * Vérifie si une quête se trouve dans la base de données
+ * @param {number} id Id de la quête à vérifier 
+ * @returns {boolean} Si vrai, la quête est dans la base de données
+ */
+function $questExist(id) {
+    return $gameQuests.quests[id] == true;
+}
+
+/**
+ * Vérifie si l'équippe possède une quête
+ * @param {number} id Id de la quête à vérifier
+ * @returns {boolean} Si vrai, l'équipe possède la quête
+ */
+function $questHave(id) {
+    return $questExist(id) && $gameParty._quests.have(id);
+}
+
+/**
+ * Vérifie si une quête est validée
+ * @param {number} id Id de la quête à vérifier
+ * @returns {boolean} Si vrai, la quête est validée
+ */
+function $questValidate(id) {
+    return $questHave(id) && $gameParty._quests.succed_quests[id] == true;
+}
+
+/**
+ * Vérifie si une quête est échouée
+ * @param {number} id Id de la quête à vérifier
+ * @returns {boolean} Si vrai, la quête est échouée
+ */
+function $questFailed(id) {
+    return $questHave(id) && $gameParty._quests.failed_quests[id] == true;
+}
+
+/**
+ * Vérifie si une quête est en cours
+ * @param {number} id Id de la quête à vérifier
+ * @returns {boolean} Si vrai, la quête est en cours
+ */
+function $questInProgress(id) {
+    return $questHave(id) && !$questValidate(id) && !$questFailed(id);
+}
+
+/**
+ * Retourne la valeurs retournée par la commande "Add"
+ * @returns {boolean | undefined}
+ */
+function $questIsAdded()
+{
+    return $questIsAdded.val;
+}
 
 //=============================================================================
 // **  RotomecaQuestSteps **
@@ -1325,12 +1850,34 @@ class QuestDatabase {
         return this.quests[id];
     }
 
+    addCreated(arrayOfQuests){
+        const tmp = this.quests;
+        this.quests = {};
+        return this.setup(arrayOfQuests)._addCreated(this.quests, tmp);
+    }
+
+    _addCreated(newQuests, currentQuests)
+    {
+        let obj = {};
+        const lastIndex = Object.keys(currentQuests).map(x => parseInt(x)).pop() + 1;
+        let index = lastIndex;
+        for (const key in newQuests) {
+            if (Object.hasOwnProperty.call(newQuests, key)) {
+                const element = newQuests[key];
+                obj[index] = element;
+                obj[index].id = index++;
+            }
+        }
+        this.quests = Object.assign(obj, currentQuests);
+        return this;
+    }
+
     /**
      * 
      * @param {RotomecaQuest} quest 
      */
     add(quest){
-        this.quests[quest.id]  = quest;
+        this.quests[quest.id] = quest;
         return this;
     }
 
@@ -1344,28 +1891,6 @@ class QuestDatabase {
         return this;
     }
 
-    validateQuest(id) {
-        return this.quests[id].updateProgress(RotomecaQuest.status.done).update(true);
-    }
-
-    validateQuestStep(questId, stepId) {
-        const stepIndex = this.quests[questId].getStepIndexById(stepId);
-
-        if (stepIndex !== -1) return this.quests[questId].steps[stepIndex].validate();
-        else throw 'Step no exist';
-    }
-
-    failQuest(id) {
-        return this.quests[id].updateProgress(RotomecaQuest.status.failed).update(true);
-    }
-
-    failQuestStep(questId, stepId) {
-        const stepIndex = this.quests[questId].getStepIndexById(stepId);
-
-        if (stepIndex !== -1) return this.quests[questId].steps[stepIndex].failed();
-        else throw 'Step no exist';
-    }
-
     static addQuestToParty(id){
         $gameParty._quests.add($gameQuests.quests[id]);
     }
@@ -1373,7 +1898,7 @@ class QuestDatabase {
     static tryAddQuestToParty(id) {
         let added = true;
 
-        if ($gameQuests.quests[id] !== undefined) this.addQuestToParty(id);
+        if ($gameQuests.quests[id] === undefined) this.addQuestToParty(id);
         else added = false;
 
         return added;
@@ -1428,6 +1953,88 @@ class QuestBook {
         }
 
         return retour;
+    }
+
+    isValid(id) {
+        return this.have(id) && this.succed_quests[id] == true;
+    }
+
+    isFailed(id) {
+        return this.have(id) && this.failed_quests[id] == true;
+    }
+
+    isInProgress(id) {
+        return !this.isValid(id) && !this.isFailed();
+    }
+
+    isMainQuest(id) {
+        return this.have(id) && this.main_quests[id] == true;
+    }
+
+    stepQuestExist(id, stepId) {
+        return this.have(id) && this.getQuest(id).steps[stepId] == true;
+    }
+
+    /**
+     * 
+     * @param {number} id 
+     * @returns {RotomecaQuest}
+     */
+    getQuest(id) {
+        for (const member in this) {
+            if (Object.hasOwnProperty.call(this, member)) 
+            {
+                if (this[member][id] !== undefined && this[member][id] !== null) return this[member][id];
+            }
+        }
+
+        return null;
+    }
+
+    validateQuest(id) {
+        if (this.have(id))
+        {
+            const quest = (this.isMainQuest(id) ? this.main_quests[id] : this.side_quests[id]).updateProgress(RotomecaQuest.status.done).update(true);
+            this.update_category();
+            return quest;
+        }
+        
+        return false;
+    }
+
+    validateQuestStep(questId, stepId) {
+        const stepIndex = this.quests[questId].getStepIndexById(stepId);
+
+        if (this.stepQuestExist(id, stepIndex)) 
+        {
+            const step = this.getQuest(id).steps[stepIndex].validate();
+            this.update();
+            return step;
+        }
+        return false;
+    }
+
+    failQuest(id) {
+        if (this.have(id))
+        {
+            const quest = (this.isMainQuest(id) ? this.main_quests[id] : this.side_quests[id]).updateProgress(RotomecaQuest.status.failed).update(true);
+            this.update_category();
+            return quest;
+        }
+        
+        return false;
+    }
+
+    failQuestStep(questId, stepId) {
+        const stepIndex = this.quests[questId].getStepIndexById(stepId);
+
+        if (this.stepQuestExist(id, stepIndex))
+        {
+            const step = this.getQuest(id).steps[stepIndex].failed();
+            this.update();
+            return step;
+        }
+        return false;
     }
 
     have(id) {
