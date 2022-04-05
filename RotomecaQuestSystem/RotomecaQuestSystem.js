@@ -3,10 +3,12 @@
 //=============================================================================
 /*:
  * @target MZ
- * @plugindesc (V0.9.0) Add a quest system
+ * @plugindesc (V1.1.1) Add a quest system
  * @author Rotomeca
  * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
- * @orderAfter RotomecaHelpers
+ * @base RotomecaCore
+ * @orderAfter RotomecaCore
+ * @orderAfter RotomecaItemDurability
  * 
  * 
  * @param Quests
@@ -194,13 +196,72 @@
  * @desc Quests added in the database
  * @type struct<Quest>[]
  * 
+ * @command openquestmenu
+ * @desc Open the quest menu, with the possibilty to focus a quest.
+ * @text Open quest menu
+ * 
+ * @arg id
+ * @text Id
+ * @desc Open the quest menu with focusing this quest. If this quest is not in the quest book, only the quest menu is open.
+ * @type number
+ * @default null
+ * 
  * @help  
  * =============================================================================
  * ### Rotomeca Quest System ###
  * Author   -   Rotomeca
- * Version  -   0.9.0
- * Updated  -   28/03/2022
+ * Version  -   1.1.1
+ * Updated  -   30/03/2022
  * =============================================================================
+ * 
+ * Add a quest system in your game.
+ * 
+ * Use the parameter 'Quests' for add quests in your game.
+ * Id of the quest is the number in front of the quest.
+ * 
+ * Commands : 
+ * - Désactiver le menu de quête
+ *  => Désactive le menu de quête dans le menu
+ * 
+ * - Activer le menu de quête
+ *  => Active le menu de quête dans le menu
+ * 
+ * - MAJ
+ *  => Met à jours l'avancement de toute les quêtes obtenu
+ *    => Le paramètres 'Asynchrone' permet d'activer ou non la fin de la commande avant de faire d'autre chose
+ * 
+ * - Valider/Echouer
+ *  => Valide ou échoue une quête
+ *    => Le paramètre 'id' correspond à l'id de la quête
+ * 
+ * - Valider une étape/Echouer une étape
+ *  => Valide ou échoue une étape/un objectif d'une quête
+ *    => Le paramètre 'id' correspond à l'id de la quête qui possède l'étape
+ *    => Le paramètre 'Id de l'étape' correspond à l'id de l'étape (le nombre devant la liste des étapes d'une quête)
+ * 
+ * - Ajouter
+ *  => Ajoute une quête au livre de quête
+ *    => Le paramètre 'Id' correspond à l'id de la quête dans la base de données
+ * 
+ * If commands : 
+ * Lorsque vous faites une branche conditionnel, choisssez 'script' et écrivez : 
+ * - $questExist(id) 
+ *  => Vérifie si une quête éxiste dans la base de données
+ *    => id : Id de la quête dans la base de données
+ *    => Renvoie vrai (true) si elle existe, faux (false) sinon
+ * 
+ * - $questHave(id)
+ *  => Vérifie si une quête est dans le livre de quête
+ *    => id : Id de la quête dans la base de données
+ *    => Renvoie vrai (true) si elle y est, faux (false) sinon
+ * - $questValidate(id)/$questFailed(id)/$questInProgress(id)
+ *  =>Vérifie si une quête dans le livre de quête est validée, échouée ou en cours
+ *    => id : Id de la quête dans la base de données
+ *    => Renvoie vrai (true) si elle est validée, échouée ou en cours, faux (false) sinon
+ * 
+ * - $questIsAdded()
+ *  => A utiliser après la commande Ajouter
+ *    => Renvoie vrai (true) si la quête n'est pas dans le livre de quête, faux (false) sinon.
  * 
  */
 
@@ -325,13 +386,14 @@
  * @param Rewards
  * @text Rewards
  * @desc Rewards get when the quest is validate
+ * @type struct<QuestReward>[]
  * 
  */
 
 
 /*:fr
  * @target MZ
- * @plugindesc (V0.9.0) Ajoute un système de quête
+ * @plugindesc (V1.2.0) Ajoute un système de quête
  * @author Rotomeca
  * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
  *
@@ -519,14 +581,26 @@
  * @desc Quêtes qui sera ajouter à la base de données des quêtes.
  * @type struct<Quest>[]
  * 
- * @orderAfter RotomecaHelpers
+ * @command openquestmenu
+ * @desc Ouvre le menu de quête, avec la possibilité de mettre en avant une quête en particulier.
+ * @text Ouvrir le menu de quête
+ * 
+ * @arg id
+ * @text Id
+ * @desc Ouvre le menu de quête sur cette quête. Si elle n'est pas dans le livre de quête, seul le menu de quête sera ouvert.
+ * @type number
+ * @default null
+ * 
+ * @base RotomecaCore
+ * @orderAfter RotomecaCore
+ * @orderAfter RotomecaItemDurability
  * 
  * @help  
  * =============================================================================
  * ### Rotomeca Quest System ###
  * Author   -   Rotomeca
- * Version  -   0.9.0
- * Updated  -   28/03/2022
+ * Version  -   (V1.2.0) 
+ * Updated  -   04/03/2022
  * =============================================================================
  * 
  * Ajoute un système de quête au jeu.
@@ -580,9 +654,8 @@
  * 
  * -----------------------------------------------------------------------------------------------------------
  * Ce qu'il reste à faire : 
- *  - Notifications
- *  - Traduction du @help anglais
- * 
+ *  - Traduction du help anglais
+ *  - MAJ du help anglais
  */
 
 /*~struct~QuestReward:fr
@@ -618,6 +691,33 @@
  * @type number
  * @desc En fonction du type
  * 
+ * @param durability
+ * @text Durabilitée (RotomecaItemDurability)
+ * @type struct<DurabilityOptions>
+ * @desc Si le plugin RotomecaItemDurability est activé et pour le type 'Arme' et 'Armure'. Permet d'avoir un équipement avec une durabilitée modifiée.
+ * 
+ */
+
+/*~struct~DurabilityOptions:fr
+ * @param active
+ * @text Actif
+ * @desc Si la durabilitée doit être changée ou non
+ * @default false
+ * @type boolean
+ * 
+ * @param durability
+ * @text Durabilitée
+ * @desc Durabilitée de l'arme ou de l'armure
+ * @type number
+ * @default 1
+ * @min 1
+ * 
+ * @param update_max
+ * @text Changer la durabilitée maximum
+ * @desc -1 pour auto, 0 pour non, sinon, valeur de la nouvelle durabilitée
+ * @type number
+ * @default 0
+ * @min -1
  * 
  */
 
@@ -710,16 +810,118 @@
  * @param Rewards
  * @text Récompenses
  * @desc Récompenses de la quête
+ * @type struct<QuestReward>[]
  * 
  */
 
-
-
+//=============================================================================
+// ** Constantes
+//=============================================================================
+const r_rqs_plugin_name = 'RotomecaQuestSystem';
+//r => Rotomeca
+//rqs => RotomecaQuestSystem
+//_default => Valeur par défaut
+//###########################################################################//
+//############################### Paramètres ################################//
+//###########################################################################//
+const r_rqs_param_lang_quest = 'LANG:QUEST';
+const r_rqs_param_lang_quest_default = 'Quêtes';
+const r_rqs_param_menu_enabled_at_start = 'Default Quest Enabled';
+const r_rqs_param_menu_enabled_at_start_default = true;
+const r_rqs_param_quests = 'Quests';
+const r_rqs_param_quests_default = '[]';
+const r_rqs_param_auto_update = 'Auto update';
+const r_rqs_param_auto_update_default = true;
+const r_rqs_param_update_when_menu = 'Update When Menu';
+const r_rqs_param_update_when_menu_default = true;
+const r_rqs_param_struct_quest_name = 'Quest Name';
+const r_rqs_param_struct_quest_desc = 'Quest desc';
+const r_rqs_param_struct_quest_is_main = 'Main quest';
+const r_rqs_param_struct_quest_giver = 'Giver';
+const r_rqs_param_struct_quest_location = 'Location';
+const r_rqs_param_struct_quest_rewards = 'Rewards';
+const r_rqs_param_struct_quest_steps = 'Steps';
+const r_rqs_param_struct_reward_type = 'type';
+const r_rqs_param_struct_id = 'id';
+//###########################################################################//
+//############################### Commandes #################################//
+//###########################################################################//
+const r_rqs_command_update = 'Update';
+const r_rqs_command_add = 'Add';
+const r_rqs_command_validate = 'Validate';
+const r_rqs_command_validate_step = 'ValidateStep';
+const r_rqs_command_fail = 'Fail';
+const r_rqs_command_fail_step = 'FailStep';
+const r_rqs_command_create = 'Create';
+const r_rqs_command_create_quests = 'CreateQuests';
+const r_rqs_command_disable_quest_menu = 'DisableQuestMenu';
+const r_rqs_command_enable_quest_menu = 'EnableQuestMenu';
+const r_rqs_command_open_quest_menu = 'openquestmenu';
+//###########################################################################//
+//################################## Lang ###################################//
+//###########################################################################//
+const r_rqs_lang_location = 'LOCATION';
+const r_rqs_lang_person = 'PERSON';
+const r_rqs_lang_kill_monster = 'KILL_MONSTER';
+//###########################################################################//
+//################################ Events ###################################//
+//###########################################################################//
+const r_rqs_event_rotomeca_quest_step_updated = 'rotomeca.quest.step.updated';
+const r_rqs_event_rotomeca_quest_step_validate = 'rotomeca.quest.step.validate';
+const r_rqs_event_rotomeca_quest_step_failed = 'rotomeca.quest.step.failed';
+const r_rqs_event_monster_killed = 'Monster.Killed';
+const r_rqs_event_scene_menu_create_command_window_after = 'Scene_Menu.createCommandWindow.after';
+//###########################################################################//
+//################################ Steps ####################################//
+//###########################################################################//
+const r_rqs_step_saved_state_in_progress = 0;
+const r_rqs_step_saved_state_valid = 1;
+const r_rqs_step_saved_state_failed = 2;
+const r_rqs_step_type_location = 'Location';
+const r_rqs_step_type_talking = 'Talking';
+const r_rqs_step_game_data_id = 'Game Data Id';
+const r_rqs_step_desc = 'Step desc';
+const r_rqs_step_is_hidden = 'Is Hidden';
+const r_rqs_step_amount = 'Amount';
+const r_rqs_step_nexts = 'Next Step(s)';
+//###########################################################################//
+//################################ Rewards ##################################//
+//###########################################################################//
+const r_rqs_reward_type_quest = 'Quest';
+//###########################################################################//
+//################################ Quests ###################################//
+//###########################################################################//
+const r_rqs_quest_done = 'quest.done';
+const r_rqs_quest_failed = 'quest.failed';
+const r_rqs_quest_added = 'quest.added';
+const r_rqs_quest_saved_state_in_progress = 0;
+const r_rqs_quest_saved_state_valid = 1;
+const r_rqs_quest_saved_state_failed = 2;
+const r_rqs_quest_setup_custom = 'Custom';
+//###########################################################################//
+//################################ Game #####################################//
+//###########################################################################//
+const r_rqs_game_gold = 'Gold';
+const r_rqs_game_variable = 'Variable';
+const r_rqs_game_switch = 'Switch';
+const r_rqs_game_item = 'Item';
+const r_rqs_game_armor = 'Armor';
+const r_rqs_game_weapon = 'Weapon';
+const r_rqs_game_items = r_rqs_game_item + 's';
+const r_rqs_game_armors = r_rqs_game_armor + 's';
+const r_rqs_game_weapons = r_rqs_game_weapon + 's';
+const r_rqs_game_ennemy = 'Ennemy';
+//###########################################################################//
+//################################ Menu #####################################//
+//###########################################################################//
+const r_rqs_window_command_quest_symbol = 'quest';
+const r_rqs_window_command_main_symbol = 'main';
+const r_rqs_window_command_side_symbol = 'side';
+const r_rqs_window_command_done_symbol = 'done';
+const r_rqs_window_command_failed_symbol = 'failed';
 //=============================================================================
 // ** PLUGIN PARAMETERS
 //=============================================================================
-const plugin_name = 'RotomecaQuestSystem';
-
 var Imported = Imported || {};
 Imported.RotomecaQuestSystem = true;
 
@@ -737,12 +939,12 @@ Rotomeca.RotomecaQuestSystem = {}
 /**
  * Paramètres du plugin
  */
-Rotomeca.RotomecaQuestSystem.parameters = PluginManager.parameters(plugin_name);
-Rotomeca.RotomecaQuestSystem.parameters.quest_text = String(Rotomeca.RotomecaQuestSystem.parameters['LANG:QUEST'] || "Quêtes");	
-Rotomeca.RotomecaQuestSystem.parameters.default_quest_enabled = Boolean(Rotomeca.RotomecaQuestSystem.parameters['Default Quest Enabled'] || true);	
-Rotomeca.RotomecaQuestSystem.parameters.quests_database = Rotomeca.RotomecaQuestSystem.parameters['Quests'] || '[]';
-Rotomeca.RotomecaQuestSystem.parameters.auto_update = Boolean(Rotomeca.RotomecaQuestSystem.parameters['Auto update'] || true);
-Rotomeca.RotomecaQuestSystem.parameters.update_in_menu = Boolean(Rotomeca.RotomecaQuestSystem.parameters['Update When Menu'] || true);
+Rotomeca.RotomecaQuestSystem.parameters = PluginManager.parameters(r_rqs_plugin_name);
+Rotomeca.RotomecaQuestSystem.parameters.quest_text = String(Rotomeca.RotomecaQuestSystem.parameters[r_rqs_param_lang_quest] || r_rqs_param_lang_quest_default);	
+Rotomeca.RotomecaQuestSystem.parameters.default_quest_enabled = Boolean(Rotomeca.RotomecaQuestSystem.parameters[r_rqs_param_menu_enabled_at_start] || r_rqs_param_menu_enabled_at_start_default);	
+Rotomeca.RotomecaQuestSystem.parameters.quests_database = Rotomeca.RotomecaQuestSystem.parameters[r_rqs_param_quests] || r_rqs_param_quests_default;
+Rotomeca.RotomecaQuestSystem.parameters.auto_update = Boolean(Rotomeca.RotomecaQuestSystem.parameters[r_rqs_param_auto_update] || r_rqs_param_auto_update_default);
+Rotomeca.RotomecaQuestSystem.parameters.update_in_menu = Boolean(Rotomeca.RotomecaQuestSystem.parameters[r_rqs_param_update_when_menu] || r_rqs_param_update_when_menu_default);
 
 /**
  * Si le menu de quête est actif ou non.
@@ -772,7 +974,7 @@ var $gameQuests = null;
  * @returns {string} Texte récupérer depuis les paramètres du plugin
  */
 Rotomeca.RotomecaQuestSystem.gettext = function gettext(text) {
-    return Rotomeca.gettext(text, 'RotomecaQuestSystem');
+    return Rotomeca.gettext(text, r_rqs_plugin_name);
 }
 
 /**
@@ -782,55 +984,60 @@ Rotomeca.RotomecaQuestSystem.gettext = function gettext(text) {
  * @returns {string} valeur récupérée depuis les paramètres du plugin
  */
  Rotomeca.RotomecaQuestSystem.lang_param = function lang_param(text, param) {
-    return Rotomeca.lang_param(text, param, false, 'RotomecaQuestSystem');
+    return Rotomeca.lang_param(text, param, false, r_rqs_plugin_name);
 }
 
 //=============================================================================
 // **  PluginManager **
 //=============================================================================	
-PluginManager.registerCommand(plugin_name, "Update", data => {
+PluginManager.registerCommand(r_rqs_plugin_name, r_rqs_command_update, data => {
     if (data.async) $gameParty._quests.updateQuestsAsync();
     else $gameParty._quests.updateQuests();
 });	
 
-PluginManager.registerCommand(plugin_name, "Add", data => {
+PluginManager.registerCommand(r_rqs_plugin_name, r_rqs_command_add, data => {
     $questIsAdded.val = QuestDatabase.tryAddQuestToParty(data.id);
 });	
 
-PluginManager.registerCommand(plugin_name, "Validate", data => {
+PluginManager.registerCommand(r_rqs_plugin_name, r_rqs_command_validate, data => {
     return $gameParty._quests.validateQuest(data.id);//$gameQuests.validateQuest(data.id);
 });	
 
-PluginManager.registerCommand(plugin_name, "ValidateStep", data => {
+PluginManager.registerCommand(r_rqs_plugin_name, r_rqs_command_validate_step, data => {
     return $gameParty._quests.validateQuestStep(data.id, data.stepId);//$gameQuests.validateQuest(data.id);
 });	
 
-PluginManager.registerCommand(plugin_name, "Fail", data => {
+PluginManager.registerCommand(r_rqs_plugin_name, r_rqs_command_fail, data => {
     return $gameParty._quests.failQuest(data.id);
 });	
 
-PluginManager.registerCommand(plugin_name, "FailStep", data => {
+PluginManager.registerCommand(r_rqs_plugin_name, r_rqs_command_fail_step, data => {
     return $gameParty._quests.failQuestStep(data.id, data.stepId);//$gameQuests.validateQuest(data.id);
 });	
 
-PluginManager.registerCommand(plugin_name, "Create", data => {
+PluginManager.registerCommand(r_rqs_plugin_name, r_rqs_command_create, data => {
     $gameQuests.addCreated(JSON.stringify([data.Quest]));
 });	
 
-PluginManager.registerCommand(plugin_name, "CreateQuests", data => {
+PluginManager.registerCommand(r_rqs_plugin_name, r_rqs_command_create_quests, data => {
     $gameQuests.addCreated(data.Quests); 
 });	
 
-PluginManager.registerCommand(plugin_name, "DisableQuestMenu", data => {
+PluginManager.registerCommand(r_rqs_plugin_name, r_rqs_command_disable_quest_menu, data => {
     Rotomeca.RotomecaQuestSystem.isQuestEnabled = false;
 });	
 
-PluginManager.registerCommand(plugin_name, "EnableQuestMenu", data => {
+PluginManager.registerCommand(r_rqs_plugin_name, r_rqs_command_enable_quest_menu, data => {
     Rotomeca.RotomecaQuestSystem.isQuestEnabled = true;
 });	
 
+PluginManager.registerCommand(r_rqs_plugin_name, r_rqs_command_open_quest_menu, data => {
+    Rotomeca.RotomecaQuestSystem.quest_to_focus = data.id;
+    SceneManager.push(Scene_Quest);
+});	
+
 //=============================================================================
-// **  ScrptingHelper **
+// **  ScriptingHelper **
 //=============================================================================	
 /**
  * Vérifie si une quête se trouve dans la base de données
@@ -838,7 +1045,7 @@ PluginManager.registerCommand(plugin_name, "EnableQuestMenu", data => {
  * @returns {boolean} Si vrai, la quête est dans la base de données
  */
 function $questExist(id) {
-    return $gameQuests.quests[id] == true;
+    return !!$gameQuests.quests[id];
 }
 
 /**
@@ -856,7 +1063,7 @@ function $questHave(id) {
  * @returns {boolean} Si vrai, la quête est validée
  */
 function $questValidate(id) {
-    return $questHave(id) && $gameParty._quests.succed_quests[id] == true;
+    return $questHave(id) && !!$gameParty._quests.succed_quests[id];
 }
 
 /**
@@ -865,7 +1072,7 @@ function $questValidate(id) {
  * @returns {boolean} Si vrai, la quête est échouée
  */
 function $questFailed(id) {
-    return $questHave(id) && $gameParty._quests.failed_quests[id] == true;
+    return $questHave(id) && !!$gameParty._quests.failed_quests[id];
 }
 
 /**
@@ -1023,9 +1230,13 @@ class RotomecaQuestSteps {
             //On vérifie si la qupete est échouée
             if (!this.isFailed && !this.isValid && this.failedStep !== null) this.isFailed = this.failedStep(this);
 
+            if (this.onUpdate !== null) this.onUpdate(this);
+
+            Rotomeca.triggerEvent(r_rqs_event_rotomeca_quest_step_updated, this);
+
             if (this.isValid) //Si valide
             {
-                Rotomeca.triggerEvent('rotomeca.quest.step.validate', this);
+                Rotomeca.triggerEvent(r_rqs_event_rotomeca_quest_step_validate, this);
 
                 if (this.nextSteps.length > 0 && this.parent)
                 {
@@ -1041,11 +1252,9 @@ class RotomecaQuestSteps {
 
             if (this.isFailed) // Si échouée
             {
-                Rotomeca.triggerEvent('rotomeca.quest.step.failed', this);
+                Rotomeca.triggerEvent(r_rqs_event_rotomeca_quest_step_failed, this);
                 this._finished = true;
             }
-
-            if (this.onUpdate !== null) this.onUpdate(this);
         }
 
         return this;
@@ -1192,7 +1401,7 @@ class RotomecaQuestSteps {
     save() {
         return {
             id:this.id,
-            state:(this.isValid ? 1 : (this.isFailed ? 2 : 0)),
+            state:(this.isValid ? r_rqs_step_saved_state_valid : (this.isFailed ? r_rqs_step_saved_state_failed : r_rqs_step_saved_state_in_progress)),
             value:this.value,
             hidden:this.hiddenStep
         };
@@ -1205,11 +1414,11 @@ class RotomecaQuestSteps {
      */
     load(saved_step) {
         switch (saved_step.state) {
-            case 1:
+            case r_rqs_step_saved_state_valid:
                 this.isValid = true;
                 break;
 
-            case 2:
+            case r_rqs_step_saved_state_failed:
                 this.isFailed = true;
                 break;
         
@@ -1284,7 +1493,7 @@ RotomecaQuestSteps.switch = (id, globalSwitchId, isHidden = false, text = '') =>
  * @returns {RotomecaQuestSteps} Etape de type "Interrupteur/Localisation"  
  */
 RotomecaQuestSteps.go_to = (id, globalSwitchId, location_name, isHidden = false) => {
-    return RotomecaQuestSteps.switch(id, globalSwitchId, isHidden, `${Rotomeca.RotomecaQuestSystem.gettext('LOCATION')} : ${location_name}`);
+    return RotomecaQuestSteps.switch(id, globalSwitchId, isHidden, `${Rotomeca.RotomecaQuestSystem.gettext(r_rqs_lang_location)} : ${location_name}`);
 };
 
 /**
@@ -1296,7 +1505,7 @@ RotomecaQuestSteps.go_to = (id, globalSwitchId, location_name, isHidden = false)
  * @returns {RotomecaQuestSteps} Etape de type "Interrupteur/Parler"  
  */
 RotomecaQuestSteps.talk_to = (id, globalSwitchId, personName, isHidden = false) => {
-    return RotomecaQuestSteps.switch(id, globalSwitchId, isHidden, `${Rotomeca.RotomecaQuestSystem.gettext('PERSON')} : ${personName}`);
+    return RotomecaQuestSteps.switch(id, globalSwitchId, isHidden, `${Rotomeca.RotomecaQuestSystem.gettext(r_rqs_lang_person)} : ${personName}`);
 };
 
 /**
@@ -1340,7 +1549,7 @@ RotomecaQuestSteps.kill_enemy = (id, id_enemy, how_many, isHidden = false) =>
         if (step.monster_count_created !== true)
         {
             step.monster_count = 0;
-            Rotomeca.addEventListener('Monster.Killed', (ennemy) => {
+            Rotomeca.addEventListener(r_rqs_event_monster_killed, (ennemy) => {
                 if (ennemy.enemyId() === id_enemy) ++step.monster_count;
             });
             step.monster_count_created = true;
@@ -1351,7 +1560,7 @@ RotomecaQuestSteps.kill_enemy = (id, id_enemy, how_many, isHidden = false) =>
         return step.value >= step.max;
     })
     .setOnUpdate((step) => {
-        step.text = `${step.value} ${$dataEnemies[id_enemy].name} ${Rotomeca.RotomecaQuestSystem.gettext('KILL_MONSTER')} ${step.max}`;
+        step.text = `${step.value} ${$dataEnemies[id_enemy].name} ${Rotomeca.RotomecaQuestSystem.gettext(r_rqs_lang_kill_monster)} ${step.max}`;
     });
 };
 
@@ -1454,6 +1663,10 @@ class RotomecaQuestReward {
                 
             case RotomecaQuestReward.types.custom:
                 return this._custom_reward();  
+
+            case RotomecaQuestReward.types.armor_durability:
+            case RotomecaQuestReward.types.weapon_durability:
+                return this._durability_reward();
         
             default:
                 throw 'Type de récompense inconnue ! Utilisez RotomecaQuestReward.types.custom plutôt.';
@@ -1490,6 +1703,30 @@ class RotomecaQuestReward {
         Rotomeca.interpreter.command127([this.reward_id, 0, 0, this.reward_amount]);
         return this;
     }
+
+    _durability_reward()
+    {
+        //Si il y a le plugin RotomecaItemDurability
+        if (Imported.RotomecaItemDurability === true && !!this.durability_infos)
+        {
+            this.durability_infos.from = this.reward_id;
+            this.durability_infos.durability = parseInt(this.durability_infos.durability);
+            this.durability_infos.update_max = parseInt(this.durability_infos.update_max);
+            switch (this.reward_type) {
+                case RotomecaQuestReward.types.armor_durability:
+                    Rotomeca.RotomecaItemDurability.addItemDurabilityToParty(0, this.durability_infos)
+                    break;
+                case RotomecaQuestReward.types.weapon_durability:
+                    Rotomeca.RotomecaItemDurability.addItemDurabilityToParty(1, this.durability_infos)
+                    break;
+
+                default:
+                    break;
+            }
+        }
+        return this;
+    }
+
     _custom_reward() {
 
         for (let index = 0; index < this._rewards_actions.length; ++index) {
@@ -1507,9 +1744,11 @@ RotomecaQuestReward.types = {
     gold:Symbol(),
     item:Symbol(),
     armor:Symbol(),
+    armor_durability:Symbol('addon'),
     weapon:Symbol(),
+    weapon_durability:Symbol('addon'),
     quest:Symbol(),
-    custom:Symbol()
+    custom:Symbol('not_supported_by_default')
 }
 
 //=============================================================================
@@ -1593,11 +1832,11 @@ class RotomecaQuest {
             if (this.isDone())
             {
                 this.setRewards();
-                Rotomeca.triggerEvent('quest.done', this);
+                Rotomeca.triggerEvent(r_rqs_quest_done, this);
             }
             else if (this.isFailed())
             {
-                Rotomeca.triggerEvent('quest.failed', this);
+                Rotomeca.triggerEvent(r_rqs_quest_failed, this);
             }
         }
 
@@ -1649,7 +1888,7 @@ class RotomecaQuest {
     save() {
         let saved_datas = {
             id:this.id,
-            status:(this.isDone() ? 1 : (this.isFailed() ? 2 : 0)),
+            status:(this.isDone() ? r_rqs_quest_saved_state_valid : (this.isFailed() ? r_rqs_quest_saved_state_failed : r_rqs_quest_saved_state_in_progress)),
             rewarded:this.rewards === null,
             steps:[]
         };
@@ -1665,13 +1904,13 @@ class RotomecaQuest {
     load(save_datas)
     {
         switch (save_datas.status) {
-            case 1:
+            case r_rqs_quest_saved_state_valid:
                 this.status = RotomecaQuest.status.done;
                 break;
-            case 2:
+            case r_rqs_quest_saved_state_failed:
                 this.status = RotomecaQuest.status.failed;
                 break;
-            case 0:        
+            case r_rqs_quest_saved_state_in_progress:        
             default:
                 this.status = RotomecaQuest.status.progress;
                 break;
@@ -1698,9 +1937,9 @@ class RotomecaQuest {
 }  
 
 RotomecaQuest.status = {
-    'progress':Symbol(),
-    'done':Symbol(),
-    'failed':Symbol()
+    progress:Symbol(),
+    done:Symbol(),
+    failed:Symbol()
 }
 
 RotomecaQuest.defaults_categories = {
@@ -1728,99 +1967,128 @@ class QuestDatabase {
         let temporary_step = null;
         let temporary_quest = null;
         let temporary_reward_type = null;
+        let durability_datas = null;
         for (let index = 0; index < database.length; ++index) {
             const raw_quest = JSON.parse(database[index]);
 
-            temporary_quest = new RotomecaQuest(index + 1, raw_quest['Quest Name'], raw_quest['Quest desc'], (raw_quest['Main quest'] == 'true' ? RotomecaQuest.defaults_categories.main : RotomecaQuest.defaults_categories.side))
-                .setCreator(raw_quest['Giver'])
-                .setLocation(raw_quest['Location']);
+            temporary_quest = new RotomecaQuest(index + 1, raw_quest[r_rqs_param_struct_quest_name], raw_quest[r_rqs_param_struct_quest_desc], (raw_quest[r_rqs_param_struct_quest_is_main] == 'true' ? RotomecaQuest.defaults_categories.main : RotomecaQuest.defaults_categories.side))
+                .setCreator(raw_quest[r_rqs_param_struct_quest_giver])
+                .setLocation(raw_quest[r_rqs_param_struct_quest_location]);
 
-            if (raw_quest['Rewards'] !== '') {
-                const raw_rewards = JSON.parse(raw_quest['Rewards']);
+            if (raw_quest[r_rqs_param_struct_quest_rewards] !== '') {
+                const raw_rewards = JSON.parse(raw_quest[r_rqs_param_struct_quest_rewards]);
 
                 for (let i = 0; i < raw_rewards.length; ++i) {
                     const reward = JSON.parse(raw_rewards[i]);
-                    switch (reward['type']) {
-                        case 'Gold':
+                    switch (reward[r_rqs_param_struct_reward_type]) {
+                        case r_rqs_game_gold:
                             temporary_reward_type = RotomecaQuestReward.types.gold;
                             break;
 
-                        case 'Variable':
+                        case r_rqs_game_variable:
                             temporary_reward_type = RotomecaQuestReward.types.variable;
                             break;
 
-                        case 'Switch':
+                        case r_rqs_game_switch:
                             temporary_reward_type = RotomecaQuestReward.types.switch;
                             break;        
 
-                        case 'Item':
+                        case r_rqs_game_item:
                             temporary_reward_type = RotomecaQuestReward.types.item;
                             break;   
 
-                        case 'Armor':
-                            temporary_reward_type = RotomecaQuestReward.types.armor;
+                        case r_rqs_game_armor:
+                            {
+                                //Si il y a le plugin RotomecaItemDurability
+                                durability_datas = Imported.RotomecaItemDurability === true && !!reward.durability ? JSON.parse(reward.durability) : null;
+                                if (durability_datas !== null && (durability_datas.active == 'true' || durability_datas.active === true )) temporary_reward_type = RotomecaQuestReward.types.armor_durability;                               
+                                else temporary_reward_type = RotomecaQuestReward.types.armor;
+                            }     
                             break;   
 
-                        case 'Weapon':
-                            temporary_reward_type = RotomecaQuestReward.types.weapon;
+                        case r_rqs_game_weapon:
+                            {
+                                //Si il y a le plugin RotomecaItemDurability
+                                durability_datas = Imported.RotomecaItemDurability === true && !!reward.durability ? JSON.parse(reward.durability) : null;
+                                if (durability_datas !== null && (durability_datas.active == 'true' || durability_datas.active === true )) temporary_reward_type = RotomecaQuestReward.types.weapon_durability;
+                                else temporary_reward_type = RotomecaQuestReward.types.weapon;
+                            }
                             break;   
 
-                        case 'Quest':
+                        case r_rqs_reward_type_quest:
                             temporary_reward_type = RotomecaQuestReward.types.quest;
                             break;   
     
-                        case 'Custom':
+                        case r_rqs_quest_setup_custom:
                             temporary_reward_type = RotomecaQuestReward.types.custom;
                             break;   
                         default:
                             break;
                     }
-                    temporary_quest.addReward(new RotomecaQuestReward(temporary_reward_type, reward['id'], reward.amount));
+                    temporary_reward_type = new RotomecaQuestReward(temporary_reward_type, reward[r_rqs_param_struct_id], reward.amount);
+
+                    //Si il y a le plugin RotomecaItemDurability
+                    if (Imported.RotomecaItemDurability === true)
+                    {
+                        switch (temporary_reward_type.reward_type) {
+                            case RotomecaQuestReward.types.armor_durability:
+                            case RotomecaQuestReward.types.weapon_durability:
+                                temporary_reward_type.durability_infos = durability_datas;
+                                durability_datas = null;
+                                break;
+                        
+                            default:
+                                break;
+                        }
+                    }
+
+                    temporary_quest.addReward(temporary_reward_type);
+                    temporary_reward_type = null;
                 }
 
             }
 
-            if (raw_quest['Steps'] !== '')
+            if (raw_quest[r_rqs_param_struct_quest_steps] !== '')
             {
-                const raw_steps = JSON.parse(raw_quest['Steps']);
+                const raw_steps = JSON.parse(raw_quest[r_rqs_param_struct_quest_steps]);
 
                 for (let i = 0; i < raw_steps.length; ++i) {
                     const step = JSON.parse(raw_steps[i]);
                     
                     switch (step.type) {
-                        case 'Variable':
-                            temporary_step = RotomecaQuestSteps.variable(i, step['Game Data Id'], step['Amount'], step['Is Hidden'], step['Step desc']);
+                        case r_rqs_game_variable:
+                            temporary_step = RotomecaQuestSteps.variable(i, step[r_rqs_step_game_data_id], step[r_rqs_step_amount], step[r_rqs_step_is_hidden], step[r_rqs_step_desc]);
                             break;
 
-                        case 'Location':
-                            temporary_step = RotomecaQuestSteps.go_to(i, step['Game Data Id'], step['Step desc'], step['Is Hidden']);
+                        case r_rqs_step_type_location:
+                            temporary_step = RotomecaQuestSteps.go_to(i, step[r_rqs_step_game_data_id], step[r_rqs_step_desc], step[r_rqs_step_is_hidden]);
                             break;
 
-                        case 'Talking':
-                            temporary_step = RotomecaQuestSteps.talk_to(i, step['Game Data Id'], step['Step desc'], step['Is Hidden']);
+                        case r_rqs_step_type_talking:
+                            temporary_step = RotomecaQuestSteps.talk_to(i, step[r_rqs_step_game_data_id], step[r_rqs_step_desc], step[r_rqs_step_is_hidden]);
                             break;
 
-                        case 'Switch':
-                            temporary_step = RotomecaQuestSteps.switch(i, step['Game Data Id'], step['Is Hidden'], step['Step desc']);
+                        case r_rqs_game_switch:
+                            temporary_step = RotomecaQuestSteps.switch(i, step[r_rqs_step_game_data_id], step[r_rqs_step_is_hidden], step[r_rqs_step_desc]);
                             break;
 
-                        case 'Ennemy':
-                            temporary_step = RotomecaQuestSteps.kill_enemy(i, step['Game Data Id'], step['Amount'], step['Is Hidden']);
+                        case r_rqs_game_ennemy:
+                            temporary_step = RotomecaQuestSteps.kill_enemy(i, step[r_rqs_step_game_data_id], step[r_rqs_step_amount], step[r_rqs_step_is_hidden]);
                             break;    
                             
-                        case 'Items':
-                            temporary_step = RotomecaQuestSteps.get_items(i, step['Game Data Id'], step['Amount'], step['Is Hidden']);
+                        case r_rqs_game_items:
+                            temporary_step = RotomecaQuestSteps.get_items(i, step[r_rqs_step_game_data_id], step[r_rqs_step_amount], step[r_rqs_step_is_hidden]);
                             break;
 
-                        case 'Weapons':
-                            temporary_step = RotomecaQuestSteps.get_weapon(i, step['Game Data Id'], step['Amount'], step['Is Hidden']);
+                        case r_rqs_game_weapons:
+                            temporary_step = RotomecaQuestSteps.get_weapon(i, step[r_rqs_step_game_data_id], step[r_rqs_step_amount], step[r_rqs_step_is_hidden]);
                             break;
 
-                        case 'Armors':
-                            temporary_step = RotomecaQuestSteps.get_armor(i, step['Game Data Id'], step['Amount'], step['Is Hidden']);
+                        case r_rqs_game_armors:
+                            temporary_step = RotomecaQuestSteps.get_armor(i, step[r_rqs_step_game_data_id], step[r_rqs_step_amount], step[r_rqs_step_is_hidden]);
                             break;
 
-                        case 'Custom':
+                        case r_rqs_quest_setup_custom:
                             temporary_step = Rotomeca.triggerEvent(`Quest.GetCustomStep.Quest_${index + 1}_Step_${i + 1}`);
                             break;
     
@@ -1829,9 +2097,9 @@ class QuestDatabase {
                             break;
                     }
 
-                    if (step['Next Step(s)'] !== '')
+                    if (step[r_rqs_step_nexts] !== String.empty)
                     {
-                        temporary_step.addSteps(JSON.parse(step["Next Step(s)"]).map(x => JSON.parse(x) - 1));
+                        temporary_step.addSteps(JSON.parse(step[r_rqs_step_nexts]).map(x => JSON.parse(x) - 1));
                     }
 
                     temporary_quest.addStep(temporary_step.setParent(temporary_quest));
@@ -1893,12 +2161,13 @@ class QuestDatabase {
 
     static addQuestToParty(id){
         $gameParty._quests.add($gameQuests.quests[id]);
+        Rotomeca.triggerEvent(r_rqs_quest_added, $gameQuests.quests[id]);
     }
 
     static tryAddQuestToParty(id) {
         let added = true;
 
-        if ($gameQuests.quests[id] === undefined) this.addQuestToParty(id);
+        if ($gameQuests.quests[id] !== undefined) this.addQuestToParty(id);
         else added = false;
 
         return added;
@@ -1956,11 +2225,11 @@ class QuestBook {
     }
 
     isValid(id) {
-        return this.have(id) && this.succed_quests[id] == true;
+        return this.have(id) && !!this.succed_quests[id];
     }
 
     isFailed(id) {
-        return this.have(id) && this.failed_quests[id] == true;
+        return this.have(id) && !!this.failed_quests[id];
     }
 
     isInProgress(id) {
@@ -1968,11 +2237,11 @@ class QuestBook {
     }
 
     isMainQuest(id) {
-        return this.have(id) && this.main_quests[id] == true;
+        return this.have(id) && !!this.main_quests[id];
     }
 
     stepQuestExist(id, stepId) {
-        return this.have(id) && this.getQuest(id).steps[stepId] == true;
+        return this.have(id) && !!this.getQuest(id).steps[stepId];
     }
 
     /**
@@ -2168,6 +2437,13 @@ class QuestBook {
         }
         return this;
     }
+
+    notify(text, icon = null, color = null, ...args)
+    {
+        if (Imported.MOG_TreasureHud === true) {
+            $gameTemp._thud_data = [true, text, icon, 'custom'];
+        }
+    }
 }
 
 //=============================================================================
@@ -2267,7 +2543,7 @@ const alias_rotomeca_Game_Battler_prototype_performCollapse = Game_Battler.proto
 Game_Battler.prototype.performCollapse = function()
 {
     alias_rotomeca_Game_Battler_prototype_performCollapse.call(this);
-    if (this.isEnemy() && this.isDead()) Rotomeca.triggerEvent('Monster.Killed', this);
+    if (this.isEnemy() && this.isDead()) Rotomeca.triggerEvent(r_rqs_event_monster_killed, this);
 }
 
 if (Rotomeca.RotomecaQuestSystem.parameters.auto_update) {
@@ -2334,15 +2610,11 @@ Window_MenuCommand.prototype.isQuestEnabled = function() {
 const alias_rotomeca_Window_MenuCommand_prototype_addOriginalCommands = Window_MenuCommand.prototype.addOriginalCommands;
 Window_MenuCommand.prototype.addOriginalCommands = function() {
 	alias_rotomeca_Window_MenuCommand_prototype_addOriginalCommands.call(this);
-    if (this.needsCommand("quest")) {
+    if (this.needsCommand(r_rqs_window_command_quest_symbol)) {
         const enabled = this.isQuestEnabled();
-        this.addCommand(Rotomeca.RotomecaQuestSystem.parameters.quest_text, "quest", enabled);
+        this.addCommand(Rotomeca.RotomecaQuestSystem.parameters.quest_text, r_rqs_window_command_quest_symbol, enabled);
     }
 };
-
-Rotomeca.addEventListener('Scene_Menu.createCommandWindow.after', (scene, commands) => {
-     commands.setHandler("quest", (() => {SceneManager.push(Scene_Quest);}).bind(scene));
-});
 
 //=============================================================================
 // **  Window_MenuQuestCommand **
@@ -2363,10 +2635,10 @@ Window_MenuQuestCommand.prototype.makeCommandList = function() {
 };
 
 Window_MenuQuestCommand.prototype.addOriginalCommands = function(){
-    this.addCommand("Principales", "main", $gameParty._quests.main_quests.filter(x => (x ?? null) !== null).length > 0);
-    this.addCommand("Secondaires", "side", $gameParty._quests.side_quests.length > 0);
-    this.addCommand("Finies", "done", $gameParty._quests.succed_quests.length > 0);
-    this.addCommand("Echouées", "failed", $gameParty._quests.failed_quests.length > 0);
+    this.addCommand("Principales", r_rqs_window_command_quest_symbol, $gameParty._quests.main_quests.filter(x => (x ?? null) !== null).length > 0);
+    this.addCommand("Secondaires", r_rqs_window_command_side_symbol, $gameParty._quests.side_quests.length > 0);
+    this.addCommand("Finies", r_rqs_window_command_done_symbol, $gameParty._quests.succed_quests.length > 0);
+    this.addCommand("Echouées", r_rqs_window_command_failed_symbol, $gameParty._quests.failed_quests.length > 0);
 }
 
 //=============================================================================
@@ -2638,11 +2910,13 @@ Window_QuestRewards.prototype._draw_reward = function(reward, x, y, mw){
             this.drawText(`x${reward.reward_amount}`, x + 32, y, mw - 32);
             break;
 
+        case RotomecaQuestReward.types.armor_durability:
         case RotomecaQuestReward.types.armor:
             this.drawIcon($dataArmors[reward.reward_id].iconIndex, x, y);
             this.drawText(`${$dataArmors[reward.reward_id].name}x${reward.reward_amount}`, x + 32, y, mw - 32);
             break;
 
+        case RotomecaQuestReward.types.weapon_durability:
         case RotomecaQuestReward.types.weapon:
             this.drawIcon($dataWeapons[reward.reward_id].iconIndex, x, y);
             this.drawText(`${$dataWeapons[reward.reward_id].name}x${reward.reward_amount}`, x + 32, y, mw - 32);
@@ -2733,6 +3007,25 @@ Scene_Quest.prototype.setup = function() {
 Scene_Quest.prototype.create = function() {
     Scene_MenuBase.prototype.create.call(this);
     this.createCommandWindow();
+
+    if (!!Rotomeca.RotomecaQuestSystem.quest_to_focus)
+    {
+        const id = Rotomeca.RotomecaQuestSystem.quest_to_focus;
+        if ($gameParty._quests.have(id))
+        {
+            if ($gameParty._quests.isValid(id)) this.commandDone();
+            else if ($gameParty._quests.isFailed(id)) this.commandFailed();
+            else if ($gameParty._quests.isInProgress(id))
+            {
+                if ($gameParty._quests.isMainQuest(id)) this.commandMain();
+                else this.commandSide();
+            }
+
+            this['_window_' + this._current_command].selectSymbol(id);
+        }
+        Rotomeca.RotomecaQuestSystem.quest_to_focus = null;
+    }
+
 };
 
 Scene_Quest.prototype.start = function() {
@@ -2799,10 +3092,10 @@ Scene_Quest.prototype.createCommandWindow = function()
 {
     const rect = this.commandWindowRect();
     const commandWindow = new Window_MenuQuestCommand(rect);
-    commandWindow.setHandler("main", this.commandMain.bind(this));
-    commandWindow.setHandler("side", this.commandSide.bind(this));
-    commandWindow.setHandler("done", this.commandDone.bind(this));
-    commandWindow.setHandler("failed", this.commandFailed.bind(this));
+    commandWindow.setHandler(r_rqs_window_command_main_symbol, this.commandMain.bind(this));
+    commandWindow.setHandler(r_rqs_window_command_side_symbol, this.commandSide.bind(this));
+    commandWindow.setHandler(r_rqs_window_command_done_symbol, this.commandDone.bind(this));
+    commandWindow.setHandler(r_rqs_window_command_failed_symbol, this.commandFailed.bind(this));
     commandWindow.setHandler("cancel", this.popScene.bind(this));
     this.addWindow(commandWindow);
     this._commandWindow = commandWindow;
@@ -2811,12 +3104,6 @@ Scene_Quest.prototype.createCommandWindow = function()
 Scene_Quest.prototype._command = function(quests, command_name) {
     const rect = this.commandQuestSelectRect();
     const commandWindow = new Window_QuestSelect(rect, quests);
-    // for (const key in quests) {
-    //     if (Object.hasOwnProperty.call(quests, key)) {
-    //         const element = quests[key];
-    //         commandWindow.setHandler(element.id, () => {});
-    //     }
-    // }
     commandWindow.setHandler("cancel", this.onCommandCancel.bind(this));
     this.addWindow(commandWindow);
     this['_window_' + command_name] = commandWindow;
@@ -2842,22 +3129,22 @@ Scene_Quest.prototype.onCommandCancel = function() {
 };
 
 Scene_Quest.prototype.commandMain = function() {
-    this._current_command = 'main';
+    this._current_command = r_rqs_window_command_main_symbol;
     this._command($gameParty._quests.main_quests, this._current_command);
 };
 
 Scene_Quest.prototype.commandSide = function() {
-    this._current_command = 'side';
+    this._current_command = r_rqs_window_command_side_symbol;
     this._command($gameParty._quests.side_quests, this._current_command);
 };
 
 Scene_Quest.prototype.commandDone = function() {
-    this._current_command = 'done';
+    this._current_command = r_rqs_window_command_done_symbol;
     this._command($gameParty._quests.succed_quests, this._current_command);
 };
 
 Scene_Quest.prototype.commandFailed = function() {
-    this._current_command = 'failed';
+    this._current_command = r_rqs_window_command_failed_symbol;
     this._command($gameParty._quests.failed_quests, this._current_command);
 };
 
@@ -2865,3 +3152,70 @@ Scene_Quest.prototype.update = function() {
     Scene_Base.prototype.update.call(this);
     if (this._current_window_quest !== undefined) this._current_window_quest.refresh(); 
 };
+
+//=============================================================================
+// *** Treasure_Hud ***
+/* +++ MOG Treasure Hud (v1.1) +++
+* By Moghunter 
+* https://mogplugins.wordpress.com
+* =============================================================================*/
+//=============================================================================
+if (Imported.MOG_TreasureHud === true) {
+    Treasure_Hud.prototype.isCustom = function() {
+        return $gameTemp._thud_data[3] && $gameTemp._thud_data[3] === 'custom'; 
+    };
+
+    const alias_rotomeca_Treasure_Hud_prototype_refresh_name = Treasure_Hud.prototype.refresh_name;
+    Treasure_Hud.prototype.refresh_name = function() {
+        if (this.isCustom())
+        {
+            this._text.bitmap.clear();
+            const text = $gameTemp._thud_data[1];
+            this._text.bitmap.drawText(text,0,0,160,32,"left");
+        }
+        else  alias_rotomeca_Treasure_Hud_prototype_refresh_name.call(this);
+    };
+
+    const alias_rotomeca_Treasure_Hud_prototype_refresh_icon = Treasure_Hud.prototype.refresh_icon;
+    Treasure_Hud.prototype.refresh_icon = function() {
+        if (this.isCustom())
+        {
+            const icon_index = $gameTemp._thud_data[2];
+            const sx = icon_index % 16 * 32;
+            const sy = Math.floor(icon_index / 16) * 32;
+            this._icon.setFrame(sx, sy, 32, 32);
+        }
+        else  alias_rotomeca_Treasure_Hud_prototype_refresh_icon.call(this);
+    };
+}
+//=============================================================================
+// **  RotomecaEvents **
+//=============================================================================	
+
+Rotomeca.addEventListener(r_rqs_event_scene_menu_create_command_window_after, (scene, commands) => {
+    commands.setHandler(r_rqs_window_command_quest_symbol, (() => {SceneManager.push(Scene_Quest);}).bind(scene));
+});
+
+Rotomeca.addEventListener(r_rqs_event_rotomeca_quest_step_validate, (step) => {
+    $gameParty._quests.notify(step.text, 84);
+});
+
+Rotomeca.addEventListener(r_rqs_event_rotomeca_quest_step_failed, (step) => {
+    $gameParty._quests.notify(step.text, 86);
+});
+
+Rotomeca.addEventListener(r_rqs_event_rotomeca_quest_step_updated, (step) => {
+    $gameParty._quests.notify(step.text);
+});
+
+Rotomeca.addEventListener(r_rqs_quest_done, (quest) => {
+    $gameParty._quests.notify(quest.name, 84);
+});
+
+Rotomeca.addEventListener(r_rqs_quest_failed, (quest) => {
+    $gameParty._quests.notify(quest.name, 86);
+});
+
+Rotomeca.addEventListener(r_rqs_quest_added, (quest) => {
+    $gameParty._quests.notify(quest.name);
+});
