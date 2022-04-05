@@ -1,11 +1,11 @@
 # RotomecaQuestSystem
 
-=============================================================================
 === Rotomeca Quest System ===
-Author   -   Rotomeca
+
+Author   -   Rotomeca /
 Version  -   0.9.0
-Updated  -   28/03/2022
-=============================================================================
+
+------------------------------
 
 Ajoute un système de quête au jeu.
 
@@ -38,21 +38,21 @@ Commandes :
 
 Commandes conditionnels : 
 Lorsque vous faites une branche conditionnel, choisssez 'script' et écrivez : 
-- $questExist(id) 
+- `$questExist(id)`
  => Vérifie si une quête éxiste dans la base de données
    => id : Id de la quête dans la base de données
    => Renvoie vrai (true) si elle existe, faux (false) sinon
 
-- $questHave(id)
+- `$questHave(id)`
  => Vérifie si une quête est dans le livre de quête
    => id : Id de la quête dans la base de données
    => Renvoie vrai (true) si elle y est, faux (false) sinon
-- $questValidate(id)/$questFailed(id)/$questInProgress(id)
+- `$questValidate(id)`/`$questFailed(id)`/`$questInProgress(id)`
  =>Vérifie si une quête dans le livre de quête est validée, échouée ou en cours
    => id : Id de la quête dans la base de données
    => Renvoie vrai (true) si elle est validée, échouée ou en cours, faux (false) sinon
 
-- $questIsAdded()
+- `$questIsAdded()`
  => A utiliser après la commande Ajouter
    => Renvoie vrai (true) si la quête n'est pas dans le livre de quête, faux (false) sinon.
 
