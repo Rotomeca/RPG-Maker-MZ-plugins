@@ -2472,27 +2472,6 @@ Game_Party.prototype.initAllItems = function () {
     }
 };
 
-Game_Party.prototype.allArmors = function(include_wear = true) {
-    let armors = this.armors();
-
-    if (include_wear){
-        armors.push(...this.allMembers().flatMap(x => x._equips.filter((f, i) => f._dataClass === 'armor' && f._itemId !== 0)).map(x => x.object()));
-        
-    }
-
-    return armors;
-}
-
-Game_Party.prototype.allWeapons = function(include_wear = true) {
-    let weapons = this.weapons();
-
-    if (include_wear){
-        weapons.push(...this.allMembers().flatMap(x => x._equips.filter((f, i) => f._dataClass === 'weapon' && f._itemId !== 0)).map(x => x.object()));
-    }
-
-    return weapons;
-}
-
 Game_Party.prototype.updateQuests = function() {
     this._quests.update();
 }
@@ -2526,8 +2505,8 @@ if (Rotomeca.RotomecaQuestSystem.parameters.auto_update){
     };
     
     //Switch
-    const alias_rotomeca_Game_Interpreter_prototype_command123 = Game_Interpreter.prototype.command123;
-    Game_Interpreter.prototype.command123 = function(...args)
+    const alias_rotomeca_Game_Interpreter_prototype_command123 = Game_Interpreter.prototype.command121;
+    Game_Interpreter.prototype.command121 = function(...args)
     {
         alias_rotomeca_Game_Interpreter_prototype_command123.call(this, ...args);
         $gameParty.updateQuestsAsync();
