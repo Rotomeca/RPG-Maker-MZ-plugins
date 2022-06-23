@@ -619,8 +619,8 @@ BattleManager.invokeAction = function(...args)
         else if (args[0].isEnemy() && args[1].isActor()) {
             if ($dataSkills[action._item._itemId].hitType === 1)
             {
-                for (let index = 0; index < args[0]._equips.length; ++index) {
-                    const element = args[0]._equips[index];
+                for (let index = 0; index < args[1]._equips.length; ++index) {
+                    const element = args[1]._equips[index];
                     if (element.isArmor() && element.haveDurability())
                     {
                         const tmp = new Game_ItemDurability(element.object());//new UniqueItemDurability(element)
