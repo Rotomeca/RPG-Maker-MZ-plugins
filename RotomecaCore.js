@@ -162,3 +162,231 @@ PluginManager.callCommand = function(self, pluginName, commandName, args) {
 	alias_rotomeca_PluginManager_callCommand.call(this, self, pluginName, commandName, args);
 	if (Rotomeca.interpreter) Rotomeca.interpreter._eventId = 0; 
 };
+
+
+class RotomecaBaseClass
+{
+	constructor()
+	{}
+}
+
+class RotomecaEnum extends RotomecaBaseClass
+{
+	constructor(json)
+	{
+		super();
+		for (const key in json) {
+			if (Object.hasOwnProperty.call(json, key)) {
+				const element = json[key];
+				Object.defineProperty(this, key, {
+					enumerable: true,
+					configurable: false,
+					writable: false,
+					value:element
+				});
+			}
+		}
+	}
+
+	static createEnum(name, json)
+	{
+		if (RotomecaEnum.createEnum.enums === undefined) RotomecaEnum.createEnum.enums = {};
+		
+		if (RotomecaEnum.createEnum.enums[name] !== undefined) throw 'Already exist';
+		else RotomecaEnum.createEnum.enums[name] = new RotomecaEnum(json);
+
+		return RotomecaEnum.createEnum.enums[name];
+	}
+
+	static get(name) {
+		return RotomecaEnum.createEnum.enums[name];
+	}
+}
+
+class RotomecaItem extends RotomecaBaseClass
+{
+	constructor(itemId, itemType)
+	{
+		super();
+		this.item_id = itemId;
+		this.item_type = itemType;
+	}
+
+	isWeapon()
+	{
+		return this.item_type === RotomecaItem.itemTypes.w;
+	}
+
+	isArmor()
+	{
+		return this.item_type === RotomecaItem.itemTypes.a;
+	}
+
+	isItem()
+	{
+		return this.item_type === RotomecaItem.itemTypes.i;
+	}
+
+	get()
+	{
+		switch (this.item_type) {
+			case RotomecaItem.itemTypes.w:
+				return $dataWeapons[this.item_id];
+			case RotomecaItem.itemTypes.a:
+				return $dataArmors[this.item_id];			
+			case RotomecaItem.itemTypes.i:
+				return $dataItems[this.item_id];
+			default:
+				return null;
+		}
+	}
+
+	_container()
+	{
+		if (this.isWeapon()) return $gameParty.allWeapons(false);//.filter(x => x.id === this.item_id || (!!x.parent_id && x.parent_id === this.item_id)).length >= this.number_required;
+        else if (this.isArmor()) return $gameParty.allArmors(false);//.filter(x => x.id === this.item_id || (!!x.parent_id && x.parent_id === this.item_id)).length >= this.number_required;
+        else if (this.isItem()) return $gameParty.allItems(false);//.filter(x => x.id === this.item_id || (!!x.parent_id && x.parent_id === this.item_id)).length >= this.number_required;
+		return null;
+	}
+}
+
+Object.defineProperty(RotomecaItem, 'itemTypes', {
+	enumerable: false,
+	configurable: false,
+	writable: false,
+	value:RotomecaEnum.createEnum('RotomecaItem.itemTypes', {
+		w:'w',
+		a:'a',
+		i:'i'
+	})
+});
+
+//=============================================================================
+// *** RotomecaSprite_Gauge ***
+//=============================================================================
+function RotomecaSprite_Gauge() {
+    this.initialize(...arguments);
+}
+
+RotomecaSprite_Gauge.prototype = Object.create(Sprite.prototype);
+RotomecaSprite_Gauge.prototype.constructor = RotomecaSprite_Gauge;
+
+RotomecaSprite_Gauge.prototype.initialize = function(x = 0, y = 0, width = 255, height = 12, maxVal = 0, val = 0) {
+    Sprite.prototype.initialize.call(this, new Bitmap(width, height));
+	this._gauge_w = 0;
+	this._gauge_h = 0
+	this._gauge_val = 0;
+	this._gauge_MaxVal = 0;
+	this._gauge_color_back = '#000';
+	this._gauge_color_1 = '#fff';
+	this._gauge_color_2 = this._gauge_color_1;
+	return this.setup(x, y, width, height, maxVal, val);
+};
+
+RotomecaSprite_Gauge.prototype.setup = function(x, y, w, h, mv, v)
+{
+	this.bitmap = new Bitmap(w, h);
+	this.move(x, y);
+	this._gauge_w = w;
+	this._gauge_h = h;
+	this._gauge_MaxVal = mv;
+	this._gauge_val = v;
+	return this.redraw();
+};
+
+RotomecaSprite_Gauge.prototype.set_background_color = function(color)
+{
+	this._gauge_color_back = color;
+	return this.redraw();
+}
+
+RotomecaSprite_Gauge.prototype.set_gauge_color_1 = function(color)
+{
+	this._gauge_color_1 = color;
+	return this.redraw();
+}
+
+RotomecaSprite_Gauge.prototype.set_gauge_color_2 = function(color)
+{
+	this._gauge_color_2 = color;
+	return this.redraw();
+}
+
+RotomecaSprite_Gauge.prototype.set_gauge_color = function(color)
+{
+	return this.set_gauge_color_1(color).set_gauge_color_2(color);
+}
+
+RotomecaSprite_Gauge.prototype.draw = function()
+{
+	this.drawGauge();
+	//this._refresh();
+	return this;
+}
+
+RotomecaSprite_Gauge.prototype.redraw = function() {
+    this.bitmap.clear();
+    return this.draw();
+};
+
+RotomecaSprite_Gauge.prototype.update_value = function(val)
+{
+	this._gauge_val = val;
+	return this.redraw();
+}
+
+RotomecaSprite_Gauge.prototype.update_max_value = function(val)
+{
+	this._gauge_MaxVal = val;
+	return this.redraw();
+}
+
+RotomecaSprite_Gauge.prototype.gaugeRate = function() {
+	const value = this._gauge_val;
+	const maxValue = this._gauge_MaxVal;
+	return maxValue > 0 ? value / maxValue : 0;
+};
+
+RotomecaSprite_Gauge.prototype.drawGauge = function() {
+    const gaugeX = 0;
+    const gaugeY = 0;
+    const gaugewidth = this._gauge_w;
+    const gaugeHeight = this._gauge_h;
+    this.drawGaugeRect(gaugeX, gaugeY, gaugewidth, gaugeHeight);
+};
+
+RotomecaSprite_Gauge.prototype.drawGaugeRect = function(x, y, width, height) {
+    const rate = this.gaugeRate();
+    const fillW = Math.floor((width - 2) * rate);
+    const fillH = height - 2;
+    const color0 = this._gauge_color_back;
+    const color1 = this._gauge_color_1;
+    const color2 = this._gauge_color_2;
+    this.bitmap.fillRect(x, y, width, height, color0);
+    this.bitmap.gradientFillRect(x + 1, y + 1, fillW, fillH, color1, color2);
+};
+
+//=============================================================================
+// *** Game_Party ***
+//=============================================================================
+
+Game_Party.prototype.allArmors = function(include_wear = true) {
+    let armors = this.armors();
+
+    if (include_wear){
+        armors.push(...this.allMembers().flatMap(x => x._equips.filter((f, i) => f._dataClass === 'armor' && f._itemId !== 0)).map(x => x.object()));
+        
+    }
+
+    return armors;
+}
+
+Game_Party.prototype.allWeapons = function(include_wear = true) {
+    let weapons = this.weapons();
+
+    if (include_wear){
+        weapons.push(...this.allMembers().flatMap(x => x._equips.filter((f, i) => f._dataClass === 'weapon' && f._itemId !== 0)).map(x => x.object()));
+    }
+
+    return weapons;
+}
