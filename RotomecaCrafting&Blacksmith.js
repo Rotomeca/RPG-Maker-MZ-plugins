@@ -3,7 +3,7 @@
 //=============================================================================
 /*:fr
  * @target MZ
- * @plugindesc (V0.0.0) Ajoute un système de crafting et de forgeron (si le plugin RotomecaItemDurability existe)
+ * @plugindesc (V1.0.0) Ajoute un système de crafting et de forgeron (si le plugin RotomecaItemDurability existe)
  * @author Rotomeca
  * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
  * @base RotomecaCore
@@ -69,12 +69,116 @@
  * =============================================================================
  * ### Rotomeca Crafting & Blacksmith ###
  * Author   -   Rotomeca
- * Version  -   0.0.0
- * Updated  -   05/04/2022
+ * Version  -   1.0.0
+ * Updated  -   08/07/2022
  * =============================================================================
- *
+ * Ajoute un système de crafting et de forgeron basique.
+ * Le système de forgeron est disponible seulement si le plugin RotomecaItemDurability est activé.
+ * 
+ * Paramètres : 
+ *  Audio quand créé => Le fichier audio qui sera joué quand un objet sera fabriquer (crafting).
+ *  Audio quand réparé => Le fichier audio qui sera joué quand un objet sera réparé (forgeron).
+ *  Item durabilité max => Item optionel qui, si il est dans l'inventaire, rendra la durabilité au maximum.
+ * 
+ * Commandes :
+ *   Menu de craft => Ouvre le menu de craft
+ *   Ouvrir la forge => Ouvre le menu de forge
+ *   Obtenir une recette d'arme => Permet d'obtenir la recette d'une arme
+ *   Obtenir une recette d'armure => Permet d'obtenir la rectte d'une armure
+ *   Obtenir une recette d'objet => Permet d'obtenir la recette d'un objet
+ * 
+ *  Ce qu'il reste à faire : 
+ *   Traduction anglaise
+ * 
  */
-
+/*:
+ * @target MZ
+ * @plugindesc (V1.0.0) Ajoute un système de crafting et de forgeron
+ * @author Rotomeca
+ * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
+ * @base RotomecaCore
+ * @orderAfter RotomecaCore
+ * @orderAfter RotomecaItemDurability
+ *
+ * @param item_created
+ * @text Audio quand créé
+ * @desc Fichier audio qui sera joué lorsqu'un objet a été crafter.
+ * @default audio/se/Item3
+ * @type file
+ * 
+ * @param item_repair
+ * @text Audio quand réparé
+ * @desc Fichier audio qui sera joué lorsqu'un objet a été gagne en durabilité.
+ * @default audio/se/Hammer
+ * @type file
+ * 
+ * @param durability_item_healer
+ * @text Item durabilité max
+ * @desc Objet optionel qui, si est ajouté, soignera la durabilité au maximum. 
+ * @type item
+ * 
+ * @command open_crafting
+ * @desc Ouvre le menu de craft
+ * @text Menu de craft
+ * 
+ * @command open_blacksmith
+ * @desc Ouvre le menu de forgeron
+ * @text Ouvrir la forge
+ *
+ * @command add_recipe_weapon
+ * @desc Ajoute la recette d'une arme à vôtre liste de recettes.
+ * @text Obtenir une recette d'arme
+ *
+ * @arg id
+ * @text Index
+ * @desc Arme qui possède un craft. Ne fais rien si elle n'en a pas.
+ * @type weapon
+ * @default 1
+ *
+ * @command add_recipe_armor
+ * @desc Ajoute la recette d'une armure à vôtre liste de recettes.
+ * @text Obtenir une recette d'armure
+ *
+ * @arg id
+ * @text Index
+ * @desc Armure qui possède un craft. Ne fais rien si elle n'en a pas.
+ * @type armor
+ * @default 1
+ *
+ * @command add_recipe_item
+ * @desc Ajoute la recette d'un objet à vôtre liste de recettes.
+ * @text Obtenir une recette d'objet
+ *
+ * @arg id
+ * @text Index
+ * @desc Objet qui possède un craft. Ne fais rien si il n'en a pas.
+ * @type item
+ * @default 1
+ *
+ * @help
+ * =============================================================================
+ * ### Rotomeca Crafting & Blacksmith ###
+ * Author   -   Rotomeca
+ * Version  -   1.0.0
+ * Updated  -   08/07/2022
+ * =============================================================================
+ * Ajoute un système de crafting et de forgeron basique.
+ * Le système de forgeron est disponible seulement si le plugin RotomecaItemDurability est activé.
+ * 
+ * Paramètres : 
+ *  Audio quand créé => Le fichier audio qui sera joué quand un objet sera fabriquer (crafting).
+ *  Audio quand réparé => Le fichier audio qui sera joué quand un objet sera réparé (forgeron).
+ *  Item durabilité max => Item optionel qui, si il est dans l'inventaire, rendra la durabilité au maximum.
+ * 
+ * Commandes :
+ *   Menu de craft => Ouvre le menu de craft
+ *   Ouvrir la forge => Ouvre le menu de forge
+ *   Obtenir une recette d'arme => Permet d'obtenir la recette d'une arme
+ *   Obtenir une recette d'armure => Permet d'obtenir la rectte d'une armure
+ *   Obtenir une recette d'objet => Permet d'obtenir la recette d'un objet
+ * 
+ * 
+ */
 //=============================================================================
 // ** Constantes
 //=============================================================================
@@ -860,6 +964,9 @@ Window_Blacksmith.prototype.draw_ingredients_needed = function(recipe, mw)
     for (const key in recipe._ingredients) {
         if (Object.hasOwnProperty.call(recipe._ingredients, key) && key !== 'durability_gain') {
             const ing = recipe._ingredients[key];
+
+            if (key === 'magik_item' && ing.ingredientPossNumber() < ing.number_required) continue;
+
             this.draw_ingredients_icon(ing, it).draw_ingredients_name(key, ing, it, mw);
         }
         else --it;
@@ -888,7 +995,7 @@ Window_Blacksmith.prototype.draw_ingredients_name = function(key, ing, it, mw)
 
     if (key === 'magik_item') 
     {
-     text = `(${text})`;   
+        text = `(${text})`;   
     }
 
     text = `${startColor}${text}${endColor}`;
@@ -1198,7 +1305,6 @@ Scene_Blacksmith.prototype._show_recipe = function(rect, recipes)
  Scene_Blacksmith.prototype._craft = function(recipe)
 {
     Scene_CraftingBase.prototype._craft.call(this, recipe);
-
     const audio = new RotomecaSound(Rotomeca.RotomecaCraftingBlacksmith.parameters.item_repair);
 
     if (audio.exist()) audio.play();
