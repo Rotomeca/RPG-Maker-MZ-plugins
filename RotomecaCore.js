@@ -390,3 +390,85 @@ Game_Party.prototype.allWeapons = function(include_wear = true) {
 
     return weapons;
 }
+
+//=============================================================================
+// *** RotomecaAudioVisualizator ***
+//=============================================================================
+class RotomecaAudioVisualizator extends RotomecaBaseClass
+{
+	constructor(audio)
+	{
+		super();
+		const position = audio.seek();
+		Object.defineProperty(RotomecaAudioVisualizator.prototype, "position", {
+			get: function() {
+				return position;
+			},
+			configurable: true
+		});
+	}
+}
+
+
+//=============================================================================
+// *** RotomecaSound ***
+//=============================================================================
+class RotomecaSound extends RotomecaBaseClass{
+	constructor(path)
+	{
+		super();
+		path = path.split('/');
+		this.master_folder = path[0];
+		this.file = path.pop();
+		this.folder = path.filter((x, i) => i > 0).join('/');
+		this.audio = new WebAudio(path);
+	}
+
+	exist()
+	{
+		return StorageManager.audioExist(this.folder, this.file);
+	}
+
+	play(volume = null, loop = false, offset = 0)
+	{
+		if (!!volume) this.volume = volume;
+		audio.play(loop, offset);
+		return this;
+	}
+
+	isPlaying()
+	{
+		return this.audio.isPlaying();
+	}
+
+	position()
+	{
+		return new RotomecaAudioVisualizator(this.audio);
+	}
+
+	toAudio()
+	{
+		return this.audio;
+	}
+
+	destroy()
+	{
+		this.audio.destroy();
+	}
+}
+
+/**
+ * The volume of the audio.
+ *
+ * @type number
+ * @name RotomecaSound#volume
+ */
+ Object.defineProperty(RotomecaSound.prototype, "volume", {
+    get: function() {
+        return this.audio.volume;
+    },
+    set: function(value) {
+        this.audio.volume = value;
+    },
+    configurable: true
+});
