@@ -3,7 +3,7 @@
 //=============================================================================
 /*:
  * @target MZ
- * @plugindesc (V1.1.1) Add a quest system
+ * @plugindesc (V1.0.0) Add a quest system
  * @author Rotomeca
  * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
  * @base RotomecaCore
@@ -210,7 +210,7 @@
  * =============================================================================
  * ### Rotomeca Quest System ###
  * Author   -   Rotomeca
- * Version  -   1.1.1
+ * Version  -   1.0.0
  * Updated  -   30/03/2022
  * =============================================================================
  * 
@@ -393,7 +393,7 @@
 
 /*:fr
  * @target MZ
- * @plugindesc (V1.2.0) Ajoute un système de quête
+ * @plugindesc (V1.0.0) Ajoute un système de quête
  * @author Rotomeca
  * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
  *
@@ -599,7 +599,7 @@
  * =============================================================================
  * ### Rotomeca Quest System ###
  * Author   -   Rotomeca
- * Version  -   (V1.2.0) 
+ * Version  -   (V1.0.0) 
  * Updated  -   04/03/2022
  * =============================================================================
  * 
