@@ -4,7 +4,7 @@
 
 /*:
  * @target MZ
- * @plugindesc (V1.0.0) Divers commandes d'aide
+ * @plugindesc (V1.0.0A) Divers commandes d'aide
  * @author Rotomeca
  * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
  *
