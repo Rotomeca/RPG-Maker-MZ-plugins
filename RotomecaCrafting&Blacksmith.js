@@ -1154,12 +1154,9 @@ Scene_Crafting.prototype._show_recipe = function(rect, recipes)
 Scene_Crafting.prototype._craft = function(recipe)
 {
     Scene_CraftingBase.prototype._craft.call(this, recipe);
+    const audio = new RotomecaSound(Rotomeca.RotomecaCraftingBlacksmith.parameters.item_created);
 
-    if (StorageManager.audioExist('se', 'Equip3'))
-    {
-        let audio = new WebAudio(Rotomeca.RotomecaCraftingBlacksmith.parameters.item_created);
-        audio.play(false, 0);
-    }
+    if (audio.exist()) audio.play();
 
     for (const key in recipe._ingredients) {
         if (Object.hasOwnProperty.call(recipe._ingredients, key)) {
@@ -1200,16 +1197,11 @@ Scene_Blacksmith.prototype._show_recipe = function(rect, recipes)
  */
  Scene_Blacksmith.prototype._craft = function(recipe)
 {
-    debugger;
-    const sound = Rotomeca.RotomecaCraftingBlacksmith.parameters.item_repair;
-    const splited = audio.split('/');
     Scene_CraftingBase.prototype._craft.call(this, recipe);
 
-    if (StorageManager.audioExist(splited[1], splited[2]))
-    {
-        let audio = new WebAudio(sound);
-        audio.play(false, 0);
-    }
+    const audio = new RotomecaSound(Rotomeca.RotomecaCraftingBlacksmith.parameters.item_repair);
+
+    if (audio.exist()) audio.play();
 
     recipe.heal();
 
