@@ -417,22 +417,36 @@ class RotomecaSound extends RotomecaBaseClass{
 	constructor(path)
 	{
 		super();
-		path = path.split('/');
-		this.master_folder = path[0];
-		this.file = path.pop();
-		this.folder = path.filter((x, i) => i > 0).join('/');
+		let splited_path = path.split('/');
+		this.master_folder = splited_path[0];
+		this.file = splited_path.pop();
+		this.folder = splited_path.filter((x, i) => i > 0).join('/');
+
+		for (const key in RotomecaSound.ext_accepted) {
+			if (Object.hasOwnProperty.call(RotomecaSound.ext_accepted, key)) {
+				const element = '.'+RotomecaSound.ext_accepted[key];
+
+				if (this.exist(element)) 
+				{
+					path = `${path}${element}`;
+					break;
+				}
+			}
+		}
+
 		this.audio = new WebAudio(path);
 	}
 
-	exist()
+	exist(ext = '.ogg')
 	{
-		return StorageManager.audioExist(this.folder, this.file);
+		return StorageManager.audioExist(this.folder, this.file, ext);
 	}
 
 	play(volume = null, loop = false, offset = 0)
 	{
 		if (!!volume) this.volume = volume;
-		audio.play(loop, offset);
+
+		this.audio.play(loop, offset);
 		return this;
 	}
 
@@ -471,4 +485,11 @@ class RotomecaSound extends RotomecaBaseClass{
         this.audio.volume = value;
     },
     configurable: true
+});
+
+Object.defineProperty(RotomecaSound, 'ext_accepted', {
+	enumerable: true,
+	configurable: false,
+	writable: false,
+	value:['ogg', 'mp3', 'waw', 'midi']
 });
