@@ -10,6 +10,18 @@
  * @orderAfter RotomecaCore
  * @orderAfter RotomecaItemDurability
  *
+ * @param item_created
+ * @text Audio quand créé
+ * @desc Fichier audio qui sera joué lorsqu'un objet a été crafter.
+ * @default audio/se/Item3
+ * @type file
+ * 
+ * @param item_repair
+ * @text Audio quand réparé
+ * @desc Fichier audio qui sera joué lorsqu'un objet a été gagne en durabilité.
+ * @default audio/se/Hammer
+ * @type file
+ * 
  * @param durability_item_healer
  * @text Item durabilité max
  * @desc Objet optionel qui, si est ajouté, soignera la durabilité au maximum. 
@@ -150,7 +162,7 @@ class RotomecaIngredients extends RotomecaItem
     {
         if (this.isWeapon()) return $gameParty.allWeapons(false).filter(x => x.id === this.item_id || (!!x.parent_id && x.parent_id === this.item_id)).length >= this.number_required;
         else if (this.isArmor()) return $gameParty.allArmors(false).filter(x => x.id === this.item_id || (!!x.parent_id && x.parent_id === this.item_id)).length >= this.number_required;
-        else if (this.isItem()) return $gameParty.allItems(false).filter(x => x.id === this.item_id || (!!x.parent_id && x.parent_id === this.item_id)).length >= this.number_required;
+        else if (this.isItem()) return $gameParty.numItems(this.get())/*.filter(x => x.id === this.item_id || (!!x.parent_id && x.parent_id === this.item_id)).length*/ >= this.number_required;
 
         return false;
     }
@@ -332,7 +344,10 @@ class RotomecaCraftingRecipe extends RotomecaRecipe
             if (Object.hasOwnProperty.call(this._ingredients, key)) {
                 const element = this._ingredients[key];
                 if (!element.isIngredientGet) continue;
-                if (!element.isIngredientGet()) return false;
+                if (!element.isIngredientGet())
+                {
+                    if (!this.isMagikItem(element.get())) return false;
+                }
             }
         }
 
@@ -350,6 +365,11 @@ class RotomecaCraftingRecipe extends RotomecaRecipe
         }
 
         return false;
+    }
+
+    isMagikItem(item)
+    {
+        return item.id == Rotomeca.RotomecaCraftingBlacksmith.parameters.durability_item_healer;
     }
 
     noteFormat()
@@ -417,6 +437,33 @@ if (Imported.RotomecaItemDurability === true)
             if (!!this._ingredients['magik_item'] && this._ingredients['magik_item'].ingredientPossNumber() >= 1) return Number.POSITIVE_INFINITY;
 
             return this._ingredients.durability_gain;
+        }
+
+        canBeCrafted()
+        {
+            return super.canBeCrafted() && this.get().durability < this.get().durability_max;
+        }
+
+        max_durability_gain()
+        {
+            let gain = this.durability_gain();
+
+            if (Number.isFinite(gain))
+            {
+                let min = null;
+                for (const key in this._ingredients) {
+                    if (Object.hasOwnProperty.call(this._ingredients, key)) {
+                        const element = this._ingredients[key].get();
+                        if (!min || $gameParty.numItems(element) < $gameParty.numItems(min))
+                        {
+                            min = element;
+                        } 
+                    }
+                }
+                //gain = this.durability_gain() * this 
+            }
+
+            return gain;
         }
 
         heal(){
@@ -797,7 +844,7 @@ Window_Blacksmith.prototype.draw_durability_gain = function(recipe, mw)
     const text_size = mw;
     let durability_gain = recipe.durability_gain() ?? 1;
 
-    if (!Number.isFinite(durability_gain)) durability_gain = 'MAX';
+    if (!Number.isFinite(durability_gain) || durability_gain > recipe.get().durability_max) durability_gain = 'MAX';
 
     this.drawText(`Durabilitée gagnée : ${durability_gain}`, 0, y, text_size);
     return this;
@@ -968,16 +1015,14 @@ Scene_CraftingBase.prototype.createCommandWindow = function()
 {
     const rect = this.commandWindowRect();
     const commandWindow = new Window_CraftTypeSelect(rect, RotomecaItem.itemTypes, this._recipes);
-    // commandWindow.setHandler(r_rqs_window_command_main_symbol, this.commandMain.bind(this));
-    // commandWindow.setHandler(r_rqs_window_command_side_symbol, this.commandSide.bind(this));
-    // commandWindow.setHandler(r_rqs_window_command_done_symbol, this.commandDone.bind(this));
-    // commandWindow.setHandler(r_rqs_window_command_failed_symbol, this.commandFailed.bind(this));
+    
     for (const key in RotomecaItem.itemTypes) {
         if (Object.hasOwnProperty.call(RotomecaItem.itemTypes, key)) {
             const element = RotomecaItem.itemTypes[key];
             commandWindow.setHandler(element, this.show_recipes.bind(this, element));
         }
     }
+    
     commandWindow.setHandler("cancel", this.popScene.bind(this));
     this.addWindow(commandWindow);
     this._craftingWindows.main = commandWindow;
@@ -1112,7 +1157,7 @@ Scene_Crafting.prototype._craft = function(recipe)
 
     if (StorageManager.audioExist('se', 'Equip3'))
     {
-        let audio = new WebAudio('audio\\se\\Equip3.ogg');
+        let audio = new WebAudio(Rotomeca.RotomecaCraftingBlacksmith.parameters.item_created);
         audio.play(false, 0);
     }
 
@@ -1149,29 +1194,33 @@ Scene_Blacksmith.prototype._show_recipe = function(rect, recipes)
     return new Window_Blacksmith(rect, recipes, this._craftingWindows.recipes);
 };
 
-// /**
-//  * 
-//  * @param {RotomecaCraftingRecipe} recipe 
-//  */
-//  Scene_Blacksmith.prototype._craft = function(recipe)
-// {
-//     Scene_CraftingBase.prototype._craft.call(this, recipe);
+/**
+ * 
+ * @param {RotomecaCraftingRecipe} recipe 
+ */
+ Scene_Blacksmith.prototype._craft = function(recipe)
+{
+    debugger;
+    const sound = Rotomeca.RotomecaCraftingBlacksmith.parameters.item_repair;
+    const splited = audio.split('/');
+    Scene_CraftingBase.prototype._craft.call(this, recipe);
 
-//     if (StorageManager.audioExist('se', 'Equip3'))
-//     {
-//         let audio = new WebAudio('audio\\se\\Equip3.ogg');
-//         audio.play(false, 0);
-//     }
+    if (StorageManager.audioExist(splited[1], splited[2]))
+    {
+        let audio = new WebAudio(sound);
+        audio.play(false, 0);
+    }
 
-//     for (const key in recipe._ingredients) {
-//         if (Object.hasOwnProperty.call(recipe._ingredients, key)) {
-//             const element = recipe._ingredients[key];
-//             $gameParty.gainItem(element.get(), -element.number_required, false);
-//         }
-//     }
+    recipe.heal();
 
-//     $gameParty.gainItem(recipe.getResult(), 1, false);
-//     this._craftingWindows.recipes.activate();
-//     this._craftingWindows.recipes.refresh();
-//     this.showTemporaryText(recipe);
-// };
+    for (const key in recipe._ingredients) {
+        if (Object.hasOwnProperty.call(recipe._ingredients, key)) {
+            const element = recipe._ingredients[key];
+
+            if (!!element.get) $gameParty.gainItem(element.get(), -element.number_required, false);
+        }
+    }
+
+    this._craftingWindows.recipes.activate();
+    this._craftingWindows.recipes.refresh();
+};
