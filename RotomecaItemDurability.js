@@ -498,22 +498,8 @@ Game_Party.prototype.gainItem = function (item, amount, includeEquip)
 {
     if (!!item && !!item.note && item.note.includes('<durability:') && !(new Game_Item(item).haveDurability()) && item.durability_already_generated === undefined) {
         for (let index = 0; index < amount; ++index) {
-            let game_item;
-
-            if (DataManager.isWeapon(item)) {
-                game_item = $createUniqueWeapon(item);
-            } else if (DataManager.isArmor(item)) {
-                game_item = $createUniqueArmor(item);
-            }
-            else
-            {
-                alias_rotomeca_Game_Party_prototype_gainItem.call(this, item, amount, includeEquip);
-                break;
-            }
-
-            item = new UniqueItemDurability(game_item, parseInt(item.note.split('<durability:')[1].split('>')[0].replaceAll(' ', ''))).object();
-
-            alias_rotomeca_Game_Party_prototype_gainItem.call(this, item, 1, includeEquip);
+            newItem = Rotomeca.RotomecaItemDurability.createItemWithDurability(DataManager.isWeapon(item) ? 1 : 0, item, Number.POSITIVE_INFINITY);
+            alias_rotomeca_Game_Party_prototype_gainItem.call(this, newItem.object(), 1, includeEquip);
         }
     }
     else alias_rotomeca_Game_Party_prototype_gainItem.call(this, item, amount, includeEquip);
