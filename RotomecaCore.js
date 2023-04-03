@@ -1,10 +1,9 @@
 //=============================================================================
 // RotomecaCore.js
 //=============================================================================
-
 /*:
  * @target MZ
- * @plugindesc (V1.0.0A) Divers commandes d'aide
+ * @plugindesc (V1.0.1A) Divers commandes d'aide
  * @author Rotomeca
  * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
  *
@@ -163,13 +162,18 @@ PluginManager.callCommand = function(self, pluginName, commandName, args) {
 	if (Rotomeca.interpreter) Rotomeca.interpreter._eventId = 0; 
 };
 
-
+//=============================================================================
+// *** RotomecaBaseClass ***
+//=============================================================================
 class RotomecaBaseClass
 {
 	constructor()
 	{}
 }
 
+//=============================================================================
+// *** RotomecaEnum ***
+//=============================================================================
 class RotomecaEnum extends RotomecaBaseClass
 {
 	constructor(json)
@@ -193,7 +197,13 @@ class RotomecaEnum extends RotomecaBaseClass
 		if (RotomecaEnum.createEnum.enums === undefined) RotomecaEnum.createEnum.enums = {};
 		
 		if (RotomecaEnum.createEnum.enums[name] !== undefined) throw 'Already exist';
-		else RotomecaEnum.createEnum.enums[name] = new RotomecaEnum(json);
+
+		return new RotomecaEnum(json);
+	}
+
+	static createAndSaveEnum(name, json)
+	{
+		RotomecaEnum.createEnum.enums[name] = this.createEnum(name, json);
 
 		return RotomecaEnum.createEnum.enums[name];
 	}
@@ -201,8 +211,13 @@ class RotomecaEnum extends RotomecaBaseClass
 	static get(name) {
 		return RotomecaEnum.createEnum.enums[name];
 	}
+
+
 }
 
+//=============================================================================
+// *** RotomecaItem ***
+//=============================================================================
 class RotomecaItem extends RotomecaBaseClass
 {
 	constructor(itemId, itemType)
@@ -260,6 +275,121 @@ Object.defineProperty(RotomecaItem, 'itemTypes', {
 		i:'i'
 	})
 });
+
+//=============================================================================
+// *** RotomecaError ***
+//=============================================================================
+class RotomecaError extends Error {
+	constructor({
+		innerException=null,
+		erroredItem={},
+		otherInfos=[]
+	}, ...messages) {
+		super(messages.join(' '));
+
+		this.getItem = function() {
+			return erroredItem;
+		}
+
+		this.getInfos = function() {
+			return otherInfos;
+		}
+
+		this.inner = function() {
+			return innerException;
+		}
+	}
+}
+
+Object.defineProperties(RotomecaError.prototype, {
+    erroredItem: {
+        get: function() {
+            return this.getItem();
+        },
+        configurable: false
+    },
+    innerException: {
+        get: function() {
+            return this.inner();
+        },
+        configurable: false
+    },
+	otherInfos: {
+        get: function() {
+            return this.getInfos();
+        },
+        configurable: false
+    },
+});
+
+//=============================================================================
+// *** RotomecaStack ***
+//=============================================================================
+class RotomecaStack extends RotomecaBaseClass {
+	constructor() {
+		super();
+
+		let stack = [];
+
+		this.add = function(item) {
+			stack.push(item);
+			return this;
+		}
+
+		this.pop = function() {
+			let returnItem = null;
+
+			if (stack.length > 0)
+			{
+				returnItem = stack[0];
+				stack = stack.slice(1, stack.length);
+			}
+
+			return returnItem;
+		}
+
+		this.count = function() {
+			return stack.length;
+		}
+
+		this.clear = function() {
+			stack.length = 0;
+			return this;
+		}
+
+		this._pr_updateStack = function(callback) {
+			stack = callback(stack);
+			return this;
+		}
+	}
+}
+
+//=============================================================================
+// *** IndexedRotomecaStack ***
+//=============================================================================
+class IndexedRotomecaStack extends RotomecaStack {
+    constructor() {
+		super();
+	}
+
+	deleteAt(index) {
+		return this._pr_updateStack((stack) => {
+			stack[index] = null;
+			return stack.filter(x => x !== null);
+		})
+	}
+
+	deleteItem(item) {
+		return this.deleteCond(x => x !== item);
+	}
+
+	deleteCond(callback) {
+		return this._pr_updateStack((stack) => {
+			return stack.filter(!callback);
+		});
+	}
+}
+
 
 //=============================================================================
 // *** RotomecaSprite_Gauge ***
