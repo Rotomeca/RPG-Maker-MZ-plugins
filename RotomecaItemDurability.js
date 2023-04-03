@@ -122,7 +122,7 @@
  */
 /*:
  * @target MZ
- * @plugindesc (V1.0.0) Permet d'avoir une durabilitée sur les armes et armures
+ * @plugindesc (V1.0.1) Permet d'avoir une durabilitée sur les armes et armures
  * @author Rotomeca
  * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
  * @base RotomecaUniqueItems
@@ -207,7 +207,7 @@
  * =============================================================================
  * ### Rotomeca Item Durability ###
  * Author   -   Rotomeca
- * Version  -   1.0.0
+ * Version  -   1.0.1
  * Updated  -   05/04/2022
  * =============================================================================
  * Permet d'ajouter une durabilitée aux armes ou aux armures.
