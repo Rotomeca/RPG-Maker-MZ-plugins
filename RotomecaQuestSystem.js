@@ -2207,10 +2207,10 @@ var $gameQuests = $gameQuests || null;
         static load(saved_book)
         {
             let book = new QuestBook();
-            book.main_quests = QuestBook._load(saved_book.main);
-            book.side_quests = QuestBook._load(saved_book.side);
-            book.failed_quests = QuestBook._load(saved_book.failed);
-            book.succed_quests = QuestBook._load(saved_book.success);
+            book.main_quests = QuestBook._load(saved_book?.main ?? saved_book.main_quests);
+            book.side_quests = QuestBook._load(saved_book?.side ?? saved_book.side_quests);
+            book.failed_quests = QuestBook._load(saved_book?.failed ?? saved_book.failed_quests);
+            book.succed_quests = QuestBook._load(saved_book?.success ?? saved_book.succed_quests);
 
             return book;
         }
