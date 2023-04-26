@@ -249,7 +249,6 @@ var Imported = Imported || {};
 Imported.RotomecaItemDurability = true;
 
 var Rotomeca = Rotomeca || {}; 
-
 (() => {
     //=============================================================================
     // ** Constantes
@@ -755,5 +754,5 @@ var Rotomeca = Rotomeca || {};
     Rotomeca.RotomecaItemDurability.UniqueItemDurability = UniqueItemDurability;
     Rotomeca.RotomecaItemDurability.Game_ItemDurability = Game_ItemDurability;
     Rotomeca.RotomecaItemDurability.BrokenIndicator = BrokenIndicator;
-});
+})();
 
