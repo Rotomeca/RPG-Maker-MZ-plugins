@@ -3,7 +3,7 @@
 //=============================================================================
 /*:fr
  * @target MZ
- * @plugindesc (V2.0.0) Permet d'avoir des objets (objets, armures, équipements) unique.
+ * @plugindesc (V3.0.0) Permet d'avoir des objets (objets, armures, équipements) unique.
  * @author Rotomeca
  * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
  * @base RotomecaCore
@@ -75,12 +75,116 @@
  * @type variable
  * @default 1
  * 
+ * @command have_item
+ * @desc Vérifie si l'équipe possède un objet et stocke le résultat dans une variable.
+ * @text Possède l'objet
+ * 
+ * @arg id
+ * @text Id de l'objet
+ * @desc Id de l'objet qui sera tester.
+ * @type item
+ * @default 1
+ * 
+* @arg var_id
+ * @text Id de la variable
+ * @desc Variable qui stockera le résultat
+ * @type variable
+ * @default 1
+ * 
+ * @command have_weapon
+ * @desc Vérifie si l'équipe possède un équipement et stocke le résultat dans une variable.
+ * @text Possède l'équipement
+ * 
+ * @arg id
+ * @text Id de l'équipement
+ * @desc Id de l'équipement qui sera tester.
+ * @type weapon
+ * @default 1
+ * 
+ * @arg var_id
+ * @text Id de la variable
+ * @desc Variable qui stockera le résultat
+ * @type variable
+ * @default 1
+ * 
+ * @arg include_wear
+ * @text Inclut équiper ?
+ * @desc Inclut les équipements porter par les membres de l'équipe ?
+ * @type boolean
+ * @default false
+ * 
+ * @command have_armor
+ * @desc Vérifie si l'équipe possède une armure et stocke le résultat dans une variable.
+ * @text Possède une armure
+ * 
+ * @arg id
+ * @text Id de l'armure
+ * @desc Id de l'armure qui sera tester.
+ * @type armor
+ * @default 1
+ * 
+ * @arg var_id
+ * @text Id de la variable
+ * @desc Variable qui stockera le résultat
+ * @type variable
+ * @default 1
+ * 
+ * @arg include_wear
+ * @text Inclut équiper ?
+ * @desc Inclut les armures porter par les membres de l'équipe ?
+ * @type boolean
+ * @default false
+ * 
+ * @command actor_have_weapon
+ * @desc Vérifie si un membre de l'équipe possède une arme et stocke le résultat dans une variable.
+ * @text Membre possède une arme
+ * 
+ * @arg actor
+ * @text Id du membre
+ * @desc Id du membre que l'on souhaite tester.
+ * @type actor
+ * @default 1
+ * 
+ * @arg id
+ * @text Id de l'arme
+ * @desc Id de l'arme qui sera tester.
+ * @type weapon
+ * @default 1
+ * 
+ * @arg var_id
+ * @text Id de la variable
+ * @desc Variable qui stockera le résultat
+ * @type variable
+ * @default 1
+ * 
+ * @command actor_have_armor
+ * @desc Vérifie si un membre de l'équipe possède une armure et stocke le résultat dans une variable.
+ * @text Membre possède une armure
+ * 
+ * @arg actor
+ * @text Id du membre
+ * @desc Id du membre que l'on souhaite tester.
+ * @type actor
+ * @default 1
+ * 
+ * @arg id
+ * @text Id de l'armure
+ * @desc Id de l'armure qui sera tester.
+ * @type armor
+ * @default 1
+ * 
+ * @arg var_id
+ * @text Id de la variable
+ * @desc Variable qui stockera le résultat
+ * @type variable
+ * @default 1
+ * 
  * @help  
  * =============================================================================
  * ### Rotomeca Unique Items ###
  * Author   -   Rotomeca
- * Version  -   1.0.0
- * Updated  -   13/04/2022
+ * Version  -   3.0.0
+ * Updated  -   05/05/2023
  * =============================================================================
  * 
  * Plugin qui permet la création d'objets unique et donc modifiable dynamiquement.
@@ -91,7 +195,7 @@
 
 /*:
  * @target MZ
- * @plugindesc (V2.0.0) Permet d'avoir des objets (objets, armures, équipements) unique.
+ * @plugindesc (V3.0.0) Permet d'avoir des objets (objets, armures, équipements) unique.
  * @author Rotomeca
  * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
  * @base RotomecaCore
@@ -163,11 +267,115 @@
  * @type variable
  * @default 1
  * 
+ * @command have_item
+ * @desc Vérifie si l'équipe possède un objet et stocke le résultat dans une variable.
+ * @text Possède l'objet
+ * 
+ * @arg id
+ * @text Id de l'objet
+ * @desc Id de l'objet qui sera tester.
+ * @type item
+ * @default 1
+ * 
+* @arg var_id
+ * @text Id de la variable
+ * @desc Variable qui stockera le résultat
+ * @type variable
+ * @default 1
+ * 
+ * @command have_weapon
+ * @desc Vérifie si l'équipe possède un équipement et stocke le résultat dans une variable.
+ * @text Possède l'équipement
+ * 
+ * @arg id
+ * @text Id de l'équipement
+ * @desc Id de l'équipement qui sera tester.
+ * @type weapon
+ * @default 1
+ * 
+ * @arg var_id
+ * @text Id de la variable
+ * @desc Variable qui stockera le résultat
+ * @type variable
+ * @default 1
+ * 
+ * @arg include_wear
+ * @text Inclut équiper ?
+ * @desc Inclut les équipements porter par les membres de l'équipe ?
+ * @type boolean
+ * @default false
+ * 
+ * @command have_armor
+ * @desc Vérifie si l'équipe possède une armure et stocke le résultat dans une variable.
+ * @text Possède une armure
+ * 
+ * @arg id
+ * @text Id de l'armure
+ * @desc Id de l'armure qui sera tester.
+ * @type armor
+ * @default 1
+ * 
+ * @arg var_id
+ * @text Id de la variable
+ * @desc Variable qui stockera le résultat
+ * @type variable
+ * @default 1
+ * 
+ * @arg include_wear
+ * @text Inclut équiper ?
+ * @desc Inclut les armures porter par les membres de l'équipe ?
+ * @type boolean
+ * @default false
+ * 
+ * @command actor_have_weapon
+ * @desc Vérifie si un membre de l'équipe possède une arme et stocke le résultat dans une variable.
+ * @text Membre possède une arme
+ * 
+ * @arg actor
+ * @text Id du membre
+ * @desc Id du membre que l'on souhaite tester.
+ * @type actor
+ * @default 1
+ * 
+ * @arg id
+ * @text Id de l'arme
+ * @desc Id de l'arme qui sera tester.
+ * @type weapon
+ * @default 1
+ * 
+ * @arg var_id
+ * @text Id de la variable
+ * @desc Variable qui stockera le résultat
+ * @type variable
+ * @default 1
+ * 
+ * @command actor_have_armor
+ * @desc Vérifie si un membre de l'équipe possède une armure et stocke le résultat dans une variable.
+ * @text Membre possède une armure
+ * 
+ * @arg actor
+ * @text Id du membre
+ * @desc Id du membre que l'on souhaite tester.
+ * @type actor
+ * @default 1
+ * 
+ * @arg id
+ * @text Id de l'armure
+ * @desc Id de l'armure qui sera tester.
+ * @type armor
+ * @default 1
+ * 
+ * @arg var_id
+ * @text Id de la variable
+ * @desc Variable qui stockera le résultat
+ * @type variable
+ * @default 1
+ * 
  * @help  
  * =============================================================================
  * ### Rotomeca Unique Items ###
  * Author   -   Rotomeca
- * Version  -   1.0.0
+ * Version  -   2.0.0
  * Updated  -   13/04/2022
  * =============================================================================
  * 
@@ -319,6 +527,77 @@ var Rotomeca = Rotomeca || {};
         return Rotomeca.RotomecaUniqueItems.create_unique_item(item, r_rui_armor_text);
     }
 
+    function $getActorEquip(actor_id, equipment_id, equipement_type) {
+        let state = false;
+        const member = $gameParty.members().find(x => x.actorId() === actor_id)
+        const equipment = member._equips.find(x => {
+            state = false;
+            if (((x.isUniqueItem() && x.object().parent_id === equipment_id) || 
+                 (!x.isUniqueItem() && x.itemId() === equipment_id)))
+            {
+                if ((x.isArmor() && equipement_type === r_rui_armor_text) ||
+                    (x.isWeapon() && equipement_type === r_rui_weapon_text))
+                {
+                    state = true;
+                }
+            }
+
+            return state;
+        });
+
+        return equipment;
+    }
+
+    function $getHaveItem(item_id, item_type, include_wear = false) {
+        let items = [];
+        switch (item_type) {
+            case r_rui_armor_text:
+                $items = $gameParty.allArmors(include_wear);
+                break;
+
+            case r_rui_weapon_text:
+                $items = $gameParty.allWeapons(include_wear);
+                break;
+                
+            case r_rui_item_text:
+                $items = $gameParty.allItems();
+                break;
+
+            default:
+                break;
+        }
+
+        if (items.length > 0) {
+            return items.find(x => util_find_item(x, item_id));
+        }
+
+        return null;
+    }
+
+    function $haveItem(item_id) {
+        return !!$getHaveItem(item_id, r_rui_item_text);
+    }
+
+    function $haveWeapon(item_id, include_wear = false) {
+        return !!$getHaveItem(item_id, r_rui_weapon_text, include_wear);
+    }
+
+    function $haveArmor(item_id, include_wear = false) {
+        return !!$getHaveItem(item_id, r_rui_armor_text, include_wear);
+    }
+
+    function $actorHaveWeapon(actor_id, equipment_id) {
+        return !!$getActorEquip(actor_id, equipment_id, r_rui_weapon_text);
+    }
+
+    function $actorHaveArmor(actor_id, equipment_id) {
+        return !!$getActorEquip(actor_id, equipment_id, r_rui_armor_text);
+    }
+
+    function util_find_item(x, equipment_id) {
+        return (x.isUniqueItem() && x.object().parent_id === equipment_id) || 
+        (!x.isUniqueItem() && x.itemId() === equipment_id);
+    }
     //=============================================================================
     // **  PluginManager **
     //=============================================================================	
@@ -336,6 +615,26 @@ var Rotomeca = Rotomeca || {};
         const tmp = $createUniqueWeapon(data.from);
         $gameVariables[data.id] = tmp._itemId;
     });
+
+    PluginManager.registerCommand(r_rui_plugin_name, 'have_item', datas => {
+        $gameVariables[datas.var_id] = $haveItem(datas.id) ? 1 : 0;
+    });	
+
+    PluginManager.registerCommand(r_rui_plugin_name, 'have_weapon', datas => {
+        $gameVariables[datas.var_id] = $haveWeapon(datas.id, datas.include_wear) ? 1 : 0;
+    });	
+
+    PluginManager.registerCommand(r_rui_plugin_name, 'have_armor', datas => {
+        $gameVariables[datas.var_id] = $haveArmor(datas.id, datas.include_wear) ? 1 : 0;
+    });	
+
+    PluginManager.registerCommand(r_rui_plugin_name, 'actor_have_weapon', datas => {
+        $gameVariables[datas.var_id] = $actorHaveWeapon(datas.actor, datas.id, datas.include_wear) ? 1 : 0;
+    });	
+
+    PluginManager.registerCommand(r_rui_plugin_name, 'actor_have_armor', datas => {
+        $gameVariables[datas.var_id] = $actorHaveArmor(datas.actor, datas.id, datas.include_wear) ? 1 : 0;
+    });	
 
     //=============================================================================
     // **  Game_Item **
@@ -453,6 +752,13 @@ var Rotomeca = Rotomeca || {};
     Rotomeca.RotomecaUniqueItems.$createUniqueItem = $createUniqueItem;
     Rotomeca.RotomecaUniqueItems.$createUniqueWeapon = $createUniqueWeapon;
     Rotomeca.RotomecaUniqueItems.$createUniqueArmor = $createUniqueArmor;
+    Rotomeca.RotomecaUniqueItems.$getActorEquip = $getActorEquip;
+    Rotomeca.RotomecaUniqueItems.$getHaveItem = $getHaveItem;
+    Rotomeca.RotomecaUniqueItems.$haveItem = $haveItem;
+    Rotomeca.RotomecaUniqueItems.$haveWeapon = $haveWeapon;
+    Rotomeca.RotomecaUniqueItems.$haveArmor = $haveArmor;
+    Rotomeca.RotomecaUniqueItems.$actorHaveWeapon = $actorHaveWeapon;
+    Rotomeca.RotomecaUniqueItems.$actorHaveArmor = $actorHaveArmor;
     Rotomeca.RotomecaUniqueItems.Game_ItemUnique = Game_ItemUnique;
     Rotomeca.RotomecaUniqueItems.UniqueItem = UniqueItem;
 })();
