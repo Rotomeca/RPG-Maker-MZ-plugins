@@ -3,7 +3,7 @@
 //=============================================================================
 /*:fr
  * @target MZ
- * @plugindesc (V3.0.0) Permet d'avoir des objets (objets, armures, équipements) unique.
+ * @plugindesc (V3.0.1) Permet d'avoir des objets (objets, armures, équipements) unique.
  * @author Rotomeca
  * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
  * @base RotomecaCore
@@ -183,7 +183,7 @@
  * =============================================================================
  * ### Rotomeca Unique Items ###
  * Author   -   Rotomeca
- * Version  -   3.0.0
+ * Version  -   3.0.1
  * Updated  -   05/05/2023
  * =============================================================================
  * 
@@ -195,7 +195,7 @@
 
 /*:
  * @target MZ
- * @plugindesc (V3.0.0) Permet d'avoir des objets (objets, armures, équipements) unique.
+ * @plugindesc (V3.0.1) Permet d'avoir des objets (objets, armures, équipements) unique.
  * @author Rotomeca
  * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
  * @base RotomecaCore
@@ -375,8 +375,8 @@
  * =============================================================================
  * ### Rotomeca Unique Items ###
  * Author   -   Rotomeca
- * Version  -   2.0.0
- * Updated  -   13/04/2022
+ * Version  -   3.0.1
+ * Updated  -   05/05/2023
  * =============================================================================
  * 
  * Plugin qui permet la création d'objets unique et donc modifiable dynamiquement.
@@ -530,10 +530,10 @@ var Rotomeca = Rotomeca || {};
     function $getActorEquip(actor_id, equipment_id, equipement_type) {
         let state = false;
         const member = $gameParty.members().find(x => x.actorId() === actor_id)
-        const equipment = member._equips.find(x => {
+        const equipment = member._equips?.find?.(x => {
             state = false;
-            if (((x.isUniqueItem() && x.object().parent_id === equipment_id) || 
-                 (!x.isUniqueItem() && x.itemId() === equipment_id)))
+            if (0 !== x.itemId() && ((x.isUniqueItem() && x.object().parent_id === equipment_id) || 
+                                     (!x.isUniqueItem() && x.itemId() === equipment_id)))
             {
                 if ((x.isArmor() && equipement_type === r_rui_armor_text) ||
                     (x.isWeapon() && equipement_type === r_rui_weapon_text))
@@ -617,23 +617,28 @@ var Rotomeca = Rotomeca || {};
     });
 
     PluginManager.registerCommand(r_rui_plugin_name, 'have_item', datas => {
-        $gameVariables[datas.var_id] = $haveItem(datas.id) ? 1 : 0;
+        const val = $haveItem(datas.id) ? 1 : 0;
+        $gameVariables.setValue(parseInt(datas.var_id), val);
     });	
 
     PluginManager.registerCommand(r_rui_plugin_name, 'have_weapon', datas => {
-        $gameVariables[datas.var_id] = $haveWeapon(datas.id, datas.include_wear) ? 1 : 0;
+        const val = $haveWeapon(parseInt(datas.id), datas.include_wear == 'true') ? 1 : 0;
+        $gameVariables.setValue(parseInt(datas.var_id), val);
     });	
 
     PluginManager.registerCommand(r_rui_plugin_name, 'have_armor', datas => {
-        $gameVariables[datas.var_id] = $haveArmor(datas.id, datas.include_wear) ? 1 : 0;
+        const val = $haveArmor(parseInt(datas.id), datas.include_wear == 'true') ? 1 : 0;
+        $gameVariables.setValue(parseInt(datas.var_id), val);
     });	
 
     PluginManager.registerCommand(r_rui_plugin_name, 'actor_have_weapon', datas => {
-        $gameVariables[datas.var_id] = $actorHaveWeapon(datas.actor, datas.id, datas.include_wear) ? 1 : 0;
+        const val = $actorHaveWeapon(parseInt(datas.actor), parseInt(datas.id), datas.include_wear == 'true') ? 1 : 0;
+        $gameVariables.setValue(parseInt(datas.var_id), val);
     });	
 
     PluginManager.registerCommand(r_rui_plugin_name, 'actor_have_armor', datas => {
-        $gameVariables[datas.var_id] = $actorHaveArmor(datas.actor, datas.id, datas.include_wear) ? 1 : 0;
+        const val = $actorHaveArmor(parseInt(datas.actor), parseInt(datas.id), datas.include_wear == 'true') ? 1 : 0;
+        $gameVariables.setValue(parseInt(datas.var_id), val);
     });	
 
     //=============================================================================
