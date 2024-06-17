@@ -501,7 +501,7 @@ var Rotomeca = Rotomeca || {};
         /**
          * @type {UniqueItem}
          */
-        let item = Rotomeca.RotomecaUniqueItems.create_unique_item(item_id, item_type, add_to_party);
+        let item = Rotomeca.RotomecaUniqueItems.create_unique_item(item_id, item_type, false);
         item = new UniqueItem(item);
         
         item = _update_item_if_not_default(new_name, 'name', item, item.changeName);
@@ -581,12 +581,11 @@ var Rotomeca = Rotomeca || {};
     });
 
     PluginManager.registerCommand(r_rui_plugin_name, 'customize_item_from_var', datas => {
-debugger;
         if ("string" === typeof datas.id) datas.id = parseInt(datas.id);
         if ("string" === typeof datas.add_to_party) datas.add_to_party = 'true' === datas.add_to_party;
 
         const item = customize_item($gameVariables.value(datas.id), r_rui_item_text, datas.custom_name, datas.custom_desc, datas.add_to_party);
-        $gameVariables.setValue(parseInt(datas.var_id), item._itemId);
+        $gameVariables.setValue(parseInt(datas.var_id), item.id());
     });
 
     //=============================================================================
