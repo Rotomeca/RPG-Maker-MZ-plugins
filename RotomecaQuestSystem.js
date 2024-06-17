@@ -572,14 +572,11 @@
  * @desc Quête qui sera ajouter à la base de données des quêtes.
  * @type struct<Quest>
  * 
- * @command CreateQuests
- * @desc Créé plusieurs quêtes
- * @text Créer plusieurs quêtes
- *  
- * @arg Quests
- * @text Quêtes
- * @desc Quêtes qui sera ajouter à la base de données des quêtes.
- * @type struct<Quest>[]
+ * @arg Id
+ * @text Id
+ * @desc Id de la quête. Permettra de la retrouver plus tard.
+ * @type number
+ * @default 0
  * 
  * @command openquestmenu
  * @desc Ouvre le menu de quête, avec la possibilité de mettre en avant une quête en particulier.
@@ -1020,12 +1017,12 @@ var $gameQuests = $gameQuests || null;
     });	
 
     PluginManager.registerCommand(r_rqs_plugin_name, r_rqs_command_create, data => {
-        $gameQuests.addCreated(JSON.stringify([data.Quest]));
+        $gameQuests.addDynamicCreated(+data.Id, JSON.parse(data.Quest));
     });	
 
-    PluginManager.registerCommand(r_rqs_plugin_name, r_rqs_command_create_quests, data => {
-        $gameQuests.addCreated(data.Quests); 
-    });	
+    // PluginManager.registerCommand(r_rqs_plugin_name, r_rqs_command_create_quests, data => {
+    //     $gameQuests.addCreated(data.Quests); 
+    // });	
 
     PluginManager.registerCommand(r_rqs_plugin_name, r_rqs_command_disable_quest_menu, data => {
         Rotomeca.RotomecaQuestSystem.isQuestEnabled = false;
@@ -1112,6 +1109,8 @@ var $gameQuests = $gameQuests || null;
          */
         constructor(id, isHidden = false)
         {
+            if (id !== +id) id = +id;
+
             this.init().setup(id, isHidden);
         }
 
@@ -1384,7 +1383,7 @@ var $gameQuests = $gameQuests || null;
          * @returns {RotomecaQuestSteps} Chaînage
          */
         setMax(max) {
-            this.max = max;
+            this.max = +max;
             return this;
         }
 
@@ -2122,12 +2121,179 @@ var $gameQuests = $gameQuests || null;
             return this.quests[id];
         }
 
+        addDynamicCreated(id, quest) {
+            if (!this.quests) this.quests = {};
+
+            let temporary_quest = new RotomecaQuest(id, 
+                quest[r_rqs_param_struct_quest_name], 
+                quest[r_rqs_param_struct_quest_desc],
+                (quest[r_rqs_param_struct_quest_is_main] == 'true' ? RotomecaQuest.defaults_categories.main : RotomecaQuest.defaults_categories.side)
+            )
+            .setCreator(quest[r_rqs_param_struct_quest_giver])
+            .setLocation(quest[r_rqs_param_struct_quest_location])
+  
+            let temporary_step = null;
+            let temporary_reward_type = null;
+            let durability_datas = null;
+            if (quest[r_rqs_param_struct_quest_rewards] !== '') {
+                const raw_rewards = JSON.parse(quest[r_rqs_param_struct_quest_rewards]);
+
+                for (let i = 0; i < raw_rewards.length; ++i) {
+                    const reward = JSON.parse(raw_rewards[i]);
+                    switch (reward[r_rqs_param_struct_reward_type]) {
+                        case r_rqs_game_gold:
+                            temporary_reward_type = RotomecaQuestReward.types.gold;
+                            break;
+
+                        case r_rqs_game_variable:
+                            temporary_reward_type = RotomecaQuestReward.types.variable;
+                            break;
+
+                        case r_rqs_game_switch:
+                            temporary_reward_type = RotomecaQuestReward.types.switch;
+                            break;        
+
+                        case r_rqs_game_item:
+                            temporary_reward_type = RotomecaQuestReward.types.item;
+                            break;   
+
+                        case r_rqs_game_armor:
+                            {
+                                //Si il y a le plugin RotomecaItemDurability
+                                durability_datas = Imported.RotomecaItemDurability === true && !!reward.durability ? JSON.parse(reward.durability) : null;
+                                if (durability_datas !== null && (durability_datas.active == 'true' || durability_datas.active === true )) temporary_reward_type = RotomecaQuestReward.types.armor_durability;                               
+                                else temporary_reward_type = RotomecaQuestReward.types.armor;
+                            }     
+                            break;   
+
+                        case r_rqs_game_weapon:
+                            {
+                                //Si il y a le plugin RotomecaItemDurability
+                                durability_datas = Imported.RotomecaItemDurability === true && !!reward.durability ? JSON.parse(reward.durability) : null;
+                                if (durability_datas !== null && (durability_datas.active == 'true' || durability_datas.active === true )) temporary_reward_type = RotomecaQuestReward.types.weapon_durability;
+                                else temporary_reward_type = RotomecaQuestReward.types.weapon;
+                            }
+                            break;   
+
+                        case r_rqs_reward_type_quest:
+                            temporary_reward_type = RotomecaQuestReward.types.quest;
+                            break;   
+    
+                        case r_rqs_quest_setup_custom:
+                            temporary_reward_type = RotomecaQuestReward.types.custom;
+                            break;   
+                        default:
+                            break;
+                    }
+                    temporary_reward_type = new RotomecaQuestReward(temporary_reward_type, reward[r_rqs_param_struct_id], reward.amount);
+
+                    //Si il y a le plugin RotomecaItemDurability
+                    if (Imported.RotomecaItemDurability === true)
+                    {
+                        switch (temporary_reward_type.reward_type) {
+                            case RotomecaQuestReward.types.armor_durability:
+                            case RotomecaQuestReward.types.weapon_durability:
+                                temporary_reward_type.durability_infos = durability_datas;
+                                durability_datas = null;
+                                break;
+                        
+                            default:
+                                break;
+                        }
+                    }
+
+                    temporary_quest.addReward(temporary_reward_type);
+                    temporary_reward_type = null;
+                }
+
+            }
+
+            if (quest[r_rqs_param_struct_quest_steps] !== '')
+            {
+                let step;
+                const raw_steps = JSON.parse(quest[r_rqs_param_struct_quest_steps]);
+
+                for (let i = 0; i < raw_steps.length; ++i) {
+                    step = JSON.parse(raw_steps[i]);
+                    step[r_rqs_step_game_data_id] = +step[r_rqs_step_game_data_id];
+                    step[r_rqs_step_amount] = +step[r_rqs_step_amount];
+                    step[r_rqs_step_is_hidden] = step[r_rqs_step_is_hidden] === 'true' || step[r_rqs_step_is_hidden] === true;
+
+                    switch (step.type) {
+                        case r_rqs_game_variable:
+                            temporary_step = RotomecaQuestSteps.variable(i, step[r_rqs_step_game_data_id], step[r_rqs_step_amount], step[r_rqs_step_is_hidden], step[r_rqs_step_desc]);
+                            break;
+
+                        case r_rqs_step_type_location:
+                            temporary_step = RotomecaQuestSteps.go_to(i, step[r_rqs_step_game_data_id], step[r_rqs_step_desc], step[r_rqs_step_is_hidden]);
+                            break;
+
+                        case r_rqs_step_type_talking:
+                            temporary_step = RotomecaQuestSteps.talk_to(i, step[r_rqs_step_game_data_id], step[r_rqs_step_desc], step[r_rqs_step_is_hidden]);
+                            break;
+
+                        case r_rqs_game_switch:
+                            temporary_step = RotomecaQuestSteps.switch(i, step[r_rqs_step_game_data_id], step[r_rqs_step_is_hidden], step[r_rqs_step_desc]);
+                            break;
+
+                        case r_rqs_game_ennemy:
+                            temporary_step = RotomecaQuestSteps.kill_enemy(i, step[r_rqs_step_game_data_id], step[r_rqs_step_amount], step[r_rqs_step_is_hidden]);
+                            break;    
+                            
+                        case r_rqs_game_items:
+                            temporary_step = RotomecaQuestSteps.get_items(i, step[r_rqs_step_game_data_id], step[r_rqs_step_amount], step[r_rqs_step_is_hidden]);
+                            break;
+
+                        case r_rqs_game_weapons:
+                            temporary_step = RotomecaQuestSteps.get_weapon(i, step[r_rqs_step_game_data_id], step[r_rqs_step_amount], step[r_rqs_step_is_hidden]);
+                            break;
+
+                        case r_rqs_game_armors:
+                            temporary_step = RotomecaQuestSteps.get_armor(i, step[r_rqs_step_game_data_id], step[r_rqs_step_amount], step[r_rqs_step_is_hidden]);
+                            break;
+
+                        case r_rqs_quest_setup_custom:
+                            temporary_step = Rotomeca.triggerEvent(`Quest.GetCustomStep.Quest_${index + 1}_Step_${i + 1}`);
+                            break;
+    
+
+                        default:
+                            break;
+                    }
+
+                    if (step[r_rqs_step_nexts] !== String.empty)
+                    {
+                        temporary_step.addSteps(JSON.parse(step[r_rqs_step_nexts]).map(x => JSON.parse(x) - 1));
+                    }
+
+                    temporary_quest.addStep(temporary_step.setParent(temporary_quest));
+                    temporary_step = null;
+                    step = null;
+                }
+            }
+
+            this.quests[id] = temporary_quest;
+
+            return this;
+        }
+
+        /**
+         * @deprecated
+         * @param {*} arrayOfQuests 
+         * @returns 
+         */
         addCreated(arrayOfQuests){
             const tmp = this.quests;
             this.quests = {};
             return this.setup(arrayOfQuests)._addCreated(this.quests, tmp);
         }
 
+        /**
+         * @deprecated
+         * @param {*} newQuests 
+         * @param {*} currentQuests 
+         * @returns 
+         */
         _addCreated(newQuests, currentQuests)
         {
             let obj = {};
@@ -2618,7 +2784,7 @@ var $gameQuests = $gameQuests || null;
     };
 
     Window_MenuQuestCommand.prototype.addOriginalCommands = function(){
-        this.addCommand("Principales", r_rqs_window_command_quest_symbol, $gameParty._quests.main_quests.filter(x => (x ?? null) !== null).length > 0);
+        this.addCommand("Principales", r_rqs_window_command_main_symbol, $gameParty._quests.main_quests.filter(x => (x ?? null) !== null).length > 0);
         this.addCommand("Secondaires", r_rqs_window_command_side_symbol, $gameParty._quests.side_quests.length > 0);
         this.addCommand("Finies", r_rqs_window_command_done_symbol, $gameParty._quests.succed_quests.length > 0);
         this.addCommand("Echouées", r_rqs_window_command_failed_symbol, $gameParty._quests.failed_quests.length > 0);
@@ -2961,6 +3127,12 @@ var $gameQuests = $gameQuests || null;
         
     }
 
+    Window_Quest.prototype.destroyAllWindow = function() {
+        for (let index = 0, len = this._windows.length; index < len; ++index) {
+            this._windows[index].close();
+        }
+    }
+
     Window_Quest.prototype.add = function(_class, rect)
     {
         this._windows.push(new _class(rect, this._parent, this._quests));
@@ -3102,12 +3274,13 @@ var $gameQuests = $gameQuests || null;
         window.add(Window_QuestSteps, this.commandQuestStepsRect());
         window.add(Window_QuestRewards, this.commandQuestRewardsRect());
         this._current_window_quest = window;
-        console.log(this);
     }
 
     Scene_Quest.prototype.onCommandCancel = function() {
         this['_window_' + this._current_command].deselect();
         this['_window_' + this._current_command].close();
+        this._current_window_quest.destroyAllWindow();
+        this._current_window_quest.close();
         this._commandWindow.activate();
     };
 
