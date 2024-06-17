@@ -1,198 +1,6 @@
 //=============================================================================
 // RotomecaUniqueItems.js
 //=============================================================================
-/*:fr
- * @target MZ
- * @plugindesc (V3.0.1) Permet d'avoir des objets (objets, armures, équipements) unique.
- * @author Rotomeca
- * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
- * @base RotomecaCore
- * @orderAfter RotomecaCore
- * 
- * @param item_start_id
- * @text Index de départ des objets
- * @desc Index à partir duquel les objets uniques vont commencer (-1 : à partir de la fin de la bdd, n'autorise pas les updates et les dlc car ça va écraser l'éxistant)
- * @default 5000
- * @type number
- * 
- * @param weapon_start_id
- * @text Index de départ des armes
- * @desc Index à partir duquel les armes uniques vont commencer (-1 : à partir de la fin de la bdd, n'autorise pas les updates et les dlc car ça va écraser l'éxistant)
- * @default 5000
- * @type number
- * 
- * @param armor_start_id
- * @text Index de départ des armures
- * @desc Index à partir duquel les armures uniques vont commencer (-1 : à partir de la fin de la bdd, n'autorise pas les updates et les dlc car ça va écraser l'éxistant)
- * @default 5000
- * @type number
- * 
- * @command create_unique_item
- * @desc Créer un objet unique, et stocke son id dans une variable.
- * @text Créer un objet unique
- * 
- * @arg from
- * @text Objet cible
- * @desc Objet qui sera 'cloné' et qui sera donc modifiable.
- * @type item
- * @default 1
- * 
- * @arg id
- * @text Variable de jeu
- * @desc Variable qui stockera l'id de l'objet dupliqué.
- * @type variable
- * @default 1
- * 
- * @command create_unique_armor
- * @desc Créer une armure unique, et stocke son id dans une variable.
- * @text Créer une armure unique
- * 
- * @arg from
- * @text Armure cible
- * @desc Armure qui sera 'clonée' et qui sera donc modifiable.
- * @type armor
- * @default 1
- * 
- * @arg id
- * @text Variable de jeu
- * @desc Variable qui stockera l'id de l'armure dupliquée.
- * @type variable
- * @default 1
- * 
- * @command create_unique_weapon
- * @desc Créer une arme unique, et stocke son id dans une variable.
- * @text Créer une arme unique
- * 
- * @arg from
- * @text Arme cible
- * @desc Arme qui sera 'clonée' et qui sera donc modifiable.
- * @type weapon
- * @default 1
- * 
- * @arg id
- * @text Variable de jeu
- * @desc Variable qui stockera l'id de l'arme dupliquée.
- * @type variable
- * @default 1
- * 
- * @command have_item
- * @desc Vérifie si l'équipe possède un objet et stocke le résultat dans une variable.
- * @text Possède l'objet
- * 
- * @arg id
- * @text Id de l'objet
- * @desc Id de l'objet qui sera tester.
- * @type item
- * @default 1
- * 
-* @arg var_id
- * @text Id de la variable
- * @desc Variable qui stockera le résultat
- * @type variable
- * @default 1
- * 
- * @command have_weapon
- * @desc Vérifie si l'équipe possède un équipement et stocke le résultat dans une variable.
- * @text Possède l'équipement
- * 
- * @arg id
- * @text Id de l'équipement
- * @desc Id de l'équipement qui sera tester.
- * @type weapon
- * @default 1
- * 
- * @arg var_id
- * @text Id de la variable
- * @desc Variable qui stockera le résultat
- * @type variable
- * @default 1
- * 
- * @arg include_wear
- * @text Inclut équiper ?
- * @desc Inclut les équipements porter par les membres de l'équipe ?
- * @type boolean
- * @default false
- * 
- * @command have_armor
- * @desc Vérifie si l'équipe possède une armure et stocke le résultat dans une variable.
- * @text Possède une armure
- * 
- * @arg id
- * @text Id de l'armure
- * @desc Id de l'armure qui sera tester.
- * @type armor
- * @default 1
- * 
- * @arg var_id
- * @text Id de la variable
- * @desc Variable qui stockera le résultat
- * @type variable
- * @default 1
- * 
- * @arg include_wear
- * @text Inclut équiper ?
- * @desc Inclut les armures porter par les membres de l'équipe ?
- * @type boolean
- * @default false
- * 
- * @command actor_have_weapon
- * @desc Vérifie si un membre de l'équipe possède une arme et stocke le résultat dans une variable.
- * @text Membre possède une arme
- * 
- * @arg actor
- * @text Id du membre
- * @desc Id du membre que l'on souhaite tester.
- * @type actor
- * @default 1
- * 
- * @arg id
- * @text Id de l'arme
- * @desc Id de l'arme qui sera tester.
- * @type weapon
- * @default 1
- * 
- * @arg var_id
- * @text Id de la variable
- * @desc Variable qui stockera le résultat
- * @type variable
- * @default 1
- * 
- * @command actor_have_armor
- * @desc Vérifie si un membre de l'équipe possède une armure et stocke le résultat dans une variable.
- * @text Membre possède une armure
- * 
- * @arg actor
- * @text Id du membre
- * @desc Id du membre que l'on souhaite tester.
- * @type actor
- * @default 1
- * 
- * @arg id
- * @text Id de l'armure
- * @desc Id de l'armure qui sera tester.
- * @type armor
- * @default 1
- * 
- * @arg var_id
- * @text Id de la variable
- * @desc Variable qui stockera le résultat
- * @type variable
- * @default 1
- * 
- * @help  
- * =============================================================================
- * ### Rotomeca Unique Items ###
- * Author   -   Rotomeca
- * Version  -   3.0.1
- * Updated  -   05/05/2023
- * =============================================================================
- * 
- * Plugin qui permet la création d'objets unique et donc modifiable dynamiquement.
- * 
- * A Faire : traduction anglaise
- * 
- */
-
 /*:
  * @target MZ
  * @plugindesc (V3.0.1) Permet d'avoir des objets (objets, armures, équipements) unique.
@@ -371,6 +179,74 @@
  * @type variable
  * @default 1
  * 
+ * @command customize_item
+ * @desc Modifie un objet et le change en objet unique
+ * @text Modifier objet
+ * 
+ * @arg id
+ * @text Id de l'object
+ * @desc Id de l'objet à modifier.
+ * @type item
+ * @default 1
+ * 
+ * @arg var_id
+ * @text Id de la variable
+ * @desc Variable qui stockera le résultat
+ * @type variable
+ * @default 1
+ * 
+ * @arg add_to_party
+ * @text Ajouter dans l'inventaire
+ * @desc Ajouter le résultat dans l'inventaire
+ * @type boolean
+ * @default true
+ * 
+ * @arg custom_name
+ * @text Nom de l'item
+ * @desc Nouveau nom de l'objet. Vous pouvez utilisez le nom d'un personnage avec \C[ID]
+ * @type string
+ * @default default
+ * 
+ * @arg custom_desc
+ * @text Description de l'item
+ * @desc Nouvelle description de l'objet. Vous pouvez utilisez le nom d'un personnage avec \C[ID]
+ * @type string
+ * @default default
+ * 
+ * @command customize_item_from_var
+ * @desc Modifie un objet (dont l'id est définie par une variable) et le change en objet unique
+ * @text Modifier objet depuis une variable
+ * 
+ * @arg id
+ * @text Id de la variable qui contient l'id de l'objet
+ * @desc Id de la variable qui contient l'id de l'objet qui sera changé.
+ * @type variable
+ * @default 1
+ * 
+ * @arg var_id
+ * @text Id de la variable
+ * @desc Variable qui stockera le résultat
+ * @type variable
+ * @default 1
+ * 
+ * @arg add_to_party
+ * @text Ajouter dans l'inventaire
+ * @desc Ajouter le résultat dans l'inventaire
+ * @type boolean
+ * @default true
+ * 
+ * @arg custom_name
+ * @text Nom de l'item
+ * @desc Nouveau nom de l'objet. Vous pouvez utilisez le nom d'un personnage avec \C[ID]
+ * @type string
+ * @default default
+ * 
+ * @arg custom_desc
+ * @text Description de l'item
+ * @desc Nouvelle description de l'objet. Vous pouvez utilisez le nom d'un personnage avec \C[ID]
+ * @type string
+ * @default default
+ * 
  * @help  
  * =============================================================================
  * ### Rotomeca Unique Items ###
@@ -451,7 +327,7 @@ var Rotomeca = Rotomeca || {};
     //=============================================================================
     // **  ScriptingHelper **
     //=============================================================================	
-    Rotomeca.RotomecaUniqueItems._get_unique_id = function(starting_id, $data)
+    Rotomeca.RotomecaUniqueItems._get_unique_id = function _get_unique_id(starting_id, $data)
     {
         starting_id = parseInt(starting_id);
         if (starting_id === -1)
@@ -469,7 +345,7 @@ var Rotomeca = Rotomeca || {};
             
     };
 
-    Rotomeca.RotomecaUniqueItems.get_unique_id = function (type) {
+    Rotomeca.RotomecaUniqueItems.get_unique_id = function get_unique_id(type) {
         switch (type) {
             case r_rui_armor_text:
                 return this._get_unique_id(Rotomeca.RotomecaUniqueItems.parameters.armor_start_id, $dataArmors);
@@ -483,7 +359,7 @@ var Rotomeca = Rotomeca || {};
         }
     };
 
-    Rotomeca.RotomecaUniqueItems.create_unique_item = function(from, type)
+    Rotomeca.RotomecaUniqueItems.create_unique_item = function create_unique_item(from, type, add_to_party = false)
     {    
         let isId = false;
 
@@ -512,19 +388,24 @@ var Rotomeca = Rotomeca || {};
         }
 
         item._itemId = id;
+
+        if (add_to_party) {
+            $gameParty.gainItem(item.object(), 1);
+        }
+
         return item;
     };
 
-    function $createUniqueItem(item) {
-        return Rotomeca.RotomecaUniqueItems.create_unique_item(item, r_rui_item_text);
+    function $createUniqueItem(item, add_to_party = false) {
+        return Rotomeca.RotomecaUniqueItems.create_unique_item(item, r_rui_item_text, add_to_party);
     }
 
-    function $createUniqueWeapon(item) {
-        return Rotomeca.RotomecaUniqueItems.create_unique_item(item, r_rui_weapon_text);
+    function $createUniqueWeapon(item, add_to_party = false) {
+        return Rotomeca.RotomecaUniqueItems.create_unique_item(item, r_rui_weapon_text, add_to_party);
     }
 
-    function $createUniqueArmor(item) {
-        return Rotomeca.RotomecaUniqueItems.create_unique_item(item, r_rui_armor_text);
+    function $createUniqueArmor(item, add_to_party = false) {
+        return Rotomeca.RotomecaUniqueItems.create_unique_item(item, r_rui_armor_text, add_to_party);
     }
 
     function $getActorEquip(actor_id, equipment_id, equipement_type) {
@@ -598,22 +479,72 @@ var Rotomeca = Rotomeca || {};
         return (x.isUniqueItem() && x.object().parent_id === equipment_id) || 
         (!x.isUniqueItem() && x.itemId() === equipment_id);
     }
+
+    function _update_item_if_not_default(text, actor_member, item, item_action) {
+        const DEFAULT_TEXT = 'default';
+        const HERO_SELECTOR_RIGHT = '\\C[';
+        const HERO_SELECTOR_LEFT = ']';
+        if (DEFAULT_TEXT !== text) {
+            if (text.includes(HERO_SELECTOR_RIGHT)){
+                const id = parseInt(text.split(HERO_SELECTOR_RIGHT)[1].split(HERO_SELECTOR_LEFT)[0]);
+                const HERO_SELECTOR = `${HERO_SELECTOR_RIGHT}${id}${HERO_SELECTOR_LEFT}`;
+                text = text.replace(HERO_SELECTOR, $gameActors.actor(id)[actor_member]());
+            }
+
+            item_action.call(item, text);    
+        }
+
+        return item;
+    }
+
+    function customize_item(item_id, item_type, new_name, new_desc, add_to_party = true) {
+        /**
+         * @type {UniqueItem}
+         */
+        let item = Rotomeca.RotomecaUniqueItems.create_unique_item(item_id, item_type, add_to_party);
+        item = new UniqueItem(item);
+        
+        item = _update_item_if_not_default(new_name, 'name', item, item.changeName);
+        item = _update_item_if_not_default(new_desc, 'name', item, item.changeDesc);
+
+        if (add_to_party) {
+            $gameParty.gainItem(item.object(), 1);
+        }
+
+        return item;
+    }
+
     //=============================================================================
     // **  PluginManager **
     //=============================================================================	
     PluginManager.registerCommand(r_rui_plugin_name, r_rui_command_create_unique_item, data => {
-        const tmp = $createUniqueItem(data.from);
-        $gameVariables[data.id] = tmp._itemId;
+        if ("string" === typeof data.from) data.from = parseInt(data.from);
+        if ("string" === typeof data.id) data.id = parseInt(data.id);
+        if ("string" === typeof data.add_to_party) data.add_to_party = 'true' === data.add_to_party;
+
+        const add_to_party = data.add_to_party ?? true;
+        const tmp = $createUniqueItem(data.from, add_to_party);
+        $gameVariables.setValue(data.id, tmp._itemId);
     });	
 
     PluginManager.registerCommand(r_rui_plugin_name, r_rui_command_create_unique_armor, data => {
-        const tmp = $createUniqueArmor(data.from);
-        $gameVariables[data.id] = tmp._itemId;
+        if ("string" === typeof data.from) data.from = parseInt(data.from);
+        if ("string" === typeof data.id) data.id = parseInt(data.id);
+        if ("string" === typeof data.add_to_party) data.add_to_party = 'true' === data.add_to_party;
+
+        const add_to_party = data.add_to_party ?? true;
+        const tmp = $createUniqueArmor(data.from, add_to_party);
+        $gameVariables.setValue(data.id, tmp._itemId);
     });
 
     PluginManager.registerCommand(r_rui_plugin_name, r_rui_command_create_unique_weapon, data => {
-        const tmp = $createUniqueWeapon(data.from);
-        $gameVariables[data.id] = tmp._itemId;
+        if ("string" === typeof data.from) data.from = parseInt(data.from);
+        if ("string" === typeof data.id) data.id = parseInt(data.id);
+        if ("string" === typeof data.add_to_party) data.add_to_party = 'true' === data.add_to_party;
+
+        const add_to_party = data.add_to_party ?? true;
+        const tmp = $createUniqueWeapon(data.from, add_to_party);
+        $gameVariables.setValue(data.id, tmp._itemId);
     });
 
     PluginManager.registerCommand(r_rui_plugin_name, 'have_item', datas => {
@@ -640,6 +571,23 @@ var Rotomeca = Rotomeca || {};
         const val = $actorHaveArmor(parseInt(datas.actor), parseInt(datas.id), datas.include_wear == 'true') ? 1 : 0;
         $gameVariables.setValue(parseInt(datas.var_id), val);
     });	
+
+    PluginManager.registerCommand(r_rui_plugin_name, 'customize_item', datas => {
+        if ("string" === typeof datas.id) datas.id = parseInt(datas.id);
+        if ("string" === typeof datas.add_to_party) datas.add_to_party = 'true' === datas.add_to_party;
+
+        const item = customize_item(datas.id, r_rui_item_text, datas.custom_name, datas.custom_desc, datas.add_to_party);
+        $gameVariables.setValue(parseInt(datas.var_id), item._itemId);
+    });
+
+    PluginManager.registerCommand(r_rui_plugin_name, 'customize_item_from_var', datas => {
+debugger;
+        if ("string" === typeof datas.id) datas.id = parseInt(datas.id);
+        if ("string" === typeof datas.add_to_party) datas.add_to_party = 'true' === datas.add_to_party;
+
+        const item = customize_item($gameVariables.value(datas.id), r_rui_item_text, datas.custom_name, datas.custom_desc, datas.add_to_party);
+        $gameVariables.setValue(parseInt(datas.var_id), item._itemId);
+    });
 
     //=============================================================================
     // **  Game_Item **

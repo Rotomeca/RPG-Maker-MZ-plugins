@@ -347,6 +347,10 @@ var Rotomeca = Rotomeca || {};
         data.durability = parseInt(data.durability);
         data.update_max = parseInt(data.update_max);
 
+        if (!data.durability) {
+            data.durability = +$dataWeapons[data.from].meta.durability;
+        }
+
         let item = Rotomeca.RotomecaItemDurability.createItemWithDurability(type, data.from, data.durability, data.update_max !== 0);
         item.durability_already_generated = true;
 
