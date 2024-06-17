@@ -3,7 +3,7 @@
 //=============================================================================
 /*:
  * @target MZ
- * @plugindesc (V2.0.0) Add a quest system
+ * @plugindesc (V2.1.0) Add a quest system
  * @author Rotomeca
  * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
  * @base RotomecaCore
@@ -393,7 +393,7 @@
 
 /*:fr
  * @target MZ
- * @plugindesc (V2.0.0) Ajoute un système de quête
+ * @plugindesc (V2.1.0) Ajoute un système de quête
  * @author Rotomeca
  * @url https://github.com/Rotomeca/RPG-Maker-MZ-plugins
  *
